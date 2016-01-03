@@ -43,6 +43,14 @@
             return this.tableDataStorageService.storage.length;
         };
 
+        mdtPaginationHelper.prototype.selectRow = function (rowData) {
+            rowData.optionList.selected = true;
+            if (this.tableDataStorageService.storage.selectedRow) {
+                this.tableDataStorageService.storage.selectedRow.optionList.selected = false;
+            }
+            this.tableDataStorageService.storage.selectedRow = rowData;
+        };
+
         mdtPaginationHelper.prototype.getRows = function(){
             this.calculateVisibleRows();
 

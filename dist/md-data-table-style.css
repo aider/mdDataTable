@@ -21,6 +21,9 @@
   padding: 0;
   margin: 0;
 }
+.mdtTable tr:focus {
+  outline: none;
+}
 .mdtTable th {
   font-size: 12px;
   font-weight: 500;
@@ -144,11 +147,9 @@
 .mdtTable tr td {
   border-bottom: solid 1px #DDDDDD;
 }
-.mdtTable tr:hover td {
-  background: #EEEEEE;
-}
 .mdtTable .selectedRow td {
-  background: #F5F5F5;
+  color: #FFFFFF;
+  background-color: #4285F4;
 }
 .mdtTable ng-md-icon {
   fill: #757575;

@@ -121,7 +121,6 @@
      *     </mdt-table>
      * </pre>
      */
-    mdtTableDirective.$inject = ['TableDataStorageFactory', 'mdtPaginationHelperFactory', 'mdtAjaxPaginationHelperFactory'];
     function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory){
         return {
             restrict: 'E',
@@ -140,7 +139,7 @@
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage:"@"
             },
-            controller: ['$scope', function($scope){
+            controller: function($scope){
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
@@ -168,7 +167,7 @@
                 function addHeaderCell(ops){
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
-            }],
+            },
             link: function($scope, element, attrs, ctrl, transclude){
                 injectContentIntoTemplate();
 
@@ -242,7 +241,6 @@
 (function(){
     'use strict';
 
-    TableDataStorageFactory.$inject = ['$log'];
     function TableDataStorageFactory($log){
 
         function TableDataStorageService(){
@@ -605,7 +603,6 @@
 (function(){
     'use strict';
 
-    ColumnAlignmentHelper.$inject = ['ColumnOptionProvider'];
     function ColumnAlignmentHelper(ColumnOptionProvider){
         var service = this;
         service.getColumnAlignClass = getColumnAlignClass;
@@ -670,7 +667,6 @@
      *  </mdt-table>
      * </pre>
      */
-    mdtCellDirective.$inject = ['$parse'];
     function mdtCellDirective($parse){
         return {
             restrict: 'E',
@@ -743,7 +739,7 @@
             scope: {
                 tableRowId: '='
             },
-            controller: ['$scope', function($scope){
+            controller: function($scope){
                 var vm = this;
 
                 vm.addToRowDataStorage = addToRowDataStorage;
@@ -756,7 +752,7 @@
                         $scope.rowDataStorage.push(value);
                     }
                 }
-            }],
+            },
             link: function($scope, element, attrs, ctrl, transclude){
                 appendColumns();
 
@@ -905,7 +901,6 @@
 (function(){
     'use strict';
 
-    mdtAddAlignClass.$inject = ['ColumnAlignmentHelper'];
     function mdtAddAlignClass(ColumnAlignmentHelper){
         return {
             restrict: 'A',
@@ -1024,7 +1019,6 @@
 (function(){
     'use strict';
 
-    mdtCardFooterDirective.$inject = ['$timeout'];
     function mdtCardFooterDirective($timeout){
         return {
             restrict: 'E',

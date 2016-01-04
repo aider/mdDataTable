@@ -1,9 +1,9 @@
-(function(){
+(function () {
     'use strict';
 
-    function TableDataStorageFactory($log){
+    function TableDataStorageFactory($log) {
 
-        function TableDataStorageService(){
+        function TableDataStorageService() {
             this.storage = [];
             this.header = [];
 
@@ -11,12 +11,31 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.addHeaderCellData = function(ops){
+        TableDataStorageService.prototype.initModel = function (mdtModel) {
+            this.header = mdtModel.headers;
+            var _storage = this.storage;
+            mdtModel.data.forEach(function (item) {
+                var id = item.id;
+                _storage.push({
+                    rowId: item.id,
+                    optionList: {
+                        selected: false,
+                        deleted: false,
+                        visible: true
+                    },
+                    data: item
+                });
+                delete item.id;
+            });
+        };
+        TableDataStorageService.prototype.addHeaderCellData = function (ops) {
+            debugger;
             this.header.push(ops);
         };
 
-        TableDataStorageService.prototype.addRowData = function(explicitRowId, rowArray){
-            if(!(rowArray instanceof Array)){
+        TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
+            debugger;
+            if (!(rowArray instanceof Array)) {
                 $log.error('`rowArray` parameter should be array');
                 return;
             }
@@ -32,51 +51,51 @@
             });
         };
 
-        TableDataStorageService.prototype.getRowData = function(index){
-            if(!this.storage[index]){
-                $log.error('row is not exists at index: '+index);
+        TableDataStorageService.prototype.getRowData = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
                 return;
             }
 
             return this.storage[index].data;
         };
 
-        TableDataStorageService.prototype.getRowOptions = function(index){
-            if(!this.storage[index]){
-                $log.error('row is not exists at index: '+index);
+        TableDataStorageService.prototype.getRowOptions = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
                 return;
             }
 
             return this.storage[index].optionList;
         };
 
-        TableDataStorageService.prototype.setAllRowsSelected = function(isSelected, isPaginationEnabled){
-            if(typeof isSelected === 'undefined'){
+        TableDataStorageService.prototype.setAllRowsSelected = function (isSelected, isPaginationEnabled) {
+            if (typeof isSelected === 'undefined') {
                 $log.error('`isSelected` parameter is required');
                 return;
             }
 
-            _.each(this.storage, function(rowData){
-                if(isPaginationEnabled) {
+            _.each(this.storage, function (rowData) {
+                if (isPaginationEnabled) {
                     if (rowData.optionList.visible) {
                         rowData.optionList.selected = isSelected ? true : false;
                     }
-                }else{
+                } else {
                     rowData.optionList.selected = isSelected ? true : false;
                 }
             });
         };
 
-        TableDataStorageService.prototype.reverseRows = function(){
+        TableDataStorageService.prototype.reverseRows = function () {
             this.storage.reverse();
         };
 
-        TableDataStorageService.prototype.sortByColumn = function(columnIndex, iteratee){
-            if(this.sortByColumnLastIndex === columnIndex){
+        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee) {
+            if (this.sortByColumnLastIndex === columnIndex) {
                 this.reverseRows();
 
                 this.orderByAscending = !this.orderByAscending;
-            }else{
+            } else {
                 this.sortByColumnIndex(columnIndex, iteratee);
 
                 this.sortByColumnLastIndex = columnIndex;
@@ -86,16 +105,18 @@
             return this.orderByAscending ? -1 : 1;
         };
 
-        TableDataStorageService.prototype.sortByColumnIndex = function(index, iteratee){
+        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee) {
 
             var sortFunction;
             if (typeof iteratee === 'function') {
-                sortFunction = function(rowData) {
+                sortFunction = function (rowData) {
                     return iteratee(rowData.data[index], rowData, index);
                 };
             } else {
+                var id = this.header[index] ? this.header[index].id : undefined;
                 sortFunction = function (rowData) {
-                    return rowData.data[index];
+
+                    return rowData.data[id || index];
                 };
             }
 
@@ -104,31 +125,31 @@
             this.storage = res;
         };
 
-        TableDataStorageService.prototype.isAnyRowSelected = function(){
-            return _.some(this.storage, function(rowData){
+        TableDataStorageService.prototype.isAnyRowSelected = function () {
+            return _.some(this.storage, function (rowData) {
                 return rowData.optionList.selected === true && rowData.optionList.deleted === false;
             });
         };
 
-        TableDataStorageService.prototype.getNumberOfSelectedRows = function(){
-            var res = _.countBy(this.storage, function(rowData){
+        TableDataStorageService.prototype.getNumberOfSelectedRows = function () {
+            var res = _.countBy(this.storage, function (rowData) {
                 return rowData.optionList.selected === true && rowData.optionList.deleted === false ? 'selected' : 'unselected';
             });
 
             return res.selected ? res.selected : 0;
         };
 
-        TableDataStorageService.prototype.deleteSelectedRows = function(){
+        TableDataStorageService.prototype.deleteSelectedRows = function () {
             var deletedRows = [];
 
-            _.each(this.storage, function(rowData){
-                if(rowData.optionList.selected && rowData.optionList.deleted === false){
+            _.each(this.storage, function (rowData) {
+                if (rowData.optionList.selected && rowData.optionList.deleted === false) {
 
-                    if(rowData.rowId){
+                    if (rowData.rowId) {
                         deletedRows.push(rowData.rowId);
 
-                    //Fallback when no id was specified
-                    } else{
+                        //Fallback when no id was specified
+                    } else {
                         deletedRows.push(rowData.data);
                     }
 
@@ -140,7 +161,7 @@
         };
 
         return {
-            getInstance: function(){
+            getInstance: function () {
                 return new TableDataStorageService();
             }
         };

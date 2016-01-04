@@ -103,6 +103,7 @@
                 animateSortIcon: '=',
                 rippleEffect: '=',
                 paginatedRows: '=',
+                mdtModel: '=',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage:"@"
@@ -130,7 +131,15 @@
                     }
 
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
+
+                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
+                        if(data) {
+                            $scope.tableDataStorageService.initModel(data);
+                            unbindWatchMdtModel();
+                        }
+                    });
                 }
+
 
                 function addHeaderCell(ops){
                     $scope.tableDataStorageService.addHeaderCellData(ops);
@@ -141,6 +150,7 @@
 
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
+
 
                 if(!_.isEmpty($scope.mdtRow)) {
                     //local search/filter

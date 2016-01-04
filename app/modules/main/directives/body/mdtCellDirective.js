@@ -1,4 +1,4 @@
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -32,22 +32,31 @@
      *  </mdt-table>
      * </pre>
      */
-    function mdtCellDirective($parse){
+    function mdtCellDirective($parse, $compile) {
         return {
             restrict: 'E',
             replace: true,
             transclude: true,
             require: '^mdtRow',
-            link: function($scope, element, attr, mdtRowCtrl, transclude){
+            link: function ($scope, element, attr, mdtRowCtrl, transclude) {
 
                 transclude(function (clone) {
                     //TODO: rework, figure out something for including html content
-                    if(attr.htmlContent){
-                        mdtRowCtrl.addToRowDataStorage(clone, 'htmlContent');
-                    }else{
+                    //scope.$watch($sce.parseAsHtml(attr.htmlContent), function(value) {
+                    //
+                    //});
+                    if (attr.htmlContent) {
+                        var value = $parse(attr.sortVal)($scope.$parent);
+                        mdtRowCtrl.addToRowDataStorage(value, clone, 'htmlContent');
+                    } else {
                         //TODO: better idea?
+                        var value = $parse(attr.sortVal)($scope.$parent);
                         var cellValue = $parse(clone.html().replace('{{', '').replace('}}', ''))($scope.$parent);
-                        mdtRowCtrl.addToRowDataStorage(cellValue);
+                        if (value) {
+                            mdtRowCtrl.addToRowDataStorage(value, cellValue, 'textContent');
+                        } else {
+                            mdtRowCtrl.addToRowDataStorage(cellValue);
+                        }
                     }
                 });
             }

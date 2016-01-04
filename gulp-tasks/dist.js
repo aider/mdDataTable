@@ -12,7 +12,7 @@ var htmlFiles = ['app/modules/**/*.html'];
 gulp.task('dist', function() {
     var jsStream = gulp.src(jsAssets)
         .pipe(concat('md-data-table.js'))
-        .pipe(ngAnnotate({ remove: false, add: true, single_quotes: true }))
+        .pipe(ngAnnotate({ remove: true, add: false, single_quotes: true }))
         .pipe(gulp.dest('dist'));
 
     var cssStream = gulp

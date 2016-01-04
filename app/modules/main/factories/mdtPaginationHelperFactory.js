@@ -45,10 +45,12 @@
 
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
             rowData.optionList.selected = true;
-            if (this.tableDataStorageService.storage.selectedRow) {
-                this.tableDataStorageService.storage.selectedRow.optionList.selected = false;
+
+
+            if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
+                this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
-            this.tableDataStorageService.storage.selectedRow = rowData;
+            this.tableDataStorageService.selectedRow = rowData;
         };
 
         mdtPaginationHelper.prototype.getRows = function(){

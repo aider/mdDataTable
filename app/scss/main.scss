@@ -13,7 +13,17 @@
     $primaryColorPalette: #0D47A1;
 
     /* 12sp Roboto Medium, 54% black */
+    .noselect {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
     tr {
+        @extend .noselect;
+        cursor: default;
         &:focus{
             outline: none;
         }

@@ -1,4 +1,4 @@
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -36,7 +36,7 @@
      *  </mdt-table>
      * </pre>
      */
-    function mdtRowDirective(){
+    function mdtRowDirective() {
         return {
             restrict: 'E',
             transclude: true,
@@ -44,26 +44,28 @@
             scope: {
                 tableRowId: '='
             },
-            controller: function($scope){
+            controller: function ($scope) {
                 var vm = this;
 
                 vm.addToRowDataStorage = addToRowDataStorage;
                 $scope.rowDataStorage = [];
 
-                function addToRowDataStorage(value, contentType){
-                    if(contentType === 'htmlContent'){
-                        $scope.rowDataStorage.push({value: value, type: 'html'});
-                    }else{
+                function addToRowDataStorage(value, content, contentType) {
+                    if (contentType === 'htmlContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'html'});
+                    } else if (contentType === 'textContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'text'});
+                    } else {
                         $scope.rowDataStorage.push(value);
                     }
                 }
             },
-            link: function($scope, element, attrs, ctrl, transclude){
+            link: function ($scope, element, attrs, ctrl, transclude) {
                 appendColumns();
 
                 ctrl.addRowData($scope.tableRowId, $scope.rowDataStorage);
 
-                function appendColumns(){
+                function appendColumns() {
                     transclude(function (clone) {
                         element.append(clone);
                     });

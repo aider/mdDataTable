@@ -121,7 +121,6 @@
      *     </mdt-table>
      * </pre>
      */
-    mdtTableDirective.$inject = ['TableDataStorageFactory', 'mdtPaginationHelperFactory', 'mdtAjaxPaginationHelperFactory'];
     function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory){
         return {
             restrict: 'E',
@@ -136,11 +135,12 @@
                 animateSortIcon: '=',
                 rippleEffect: '=',
                 paginatedRows: '=',
+                mdtModel: '=',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage:"@"
             },
-            controller: ['$scope', function($scope){
+            controller: function($scope){
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
@@ -163,17 +163,26 @@
                     }
 
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
+
+                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
+                        if(data) {
+                            $scope.tableDataStorageService.initModel(data);
+                            unbindWatchMdtModel();
+                        }
+                    });
                 }
+
 
                 function addHeaderCell(ops){
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
-            }],
+            },
             link: function($scope, element, attrs, ctrl, transclude){
                 injectContentIntoTemplate();
 
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
+
 
                 if(!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
@@ -242,10 +251,29 @@
 (function(){
     'use strict';
 
-    TableDataStorageFactory.$inject = ['$log'];
-    function TableDataStorageFactory($log){
+    function ColumnAlignmentHelper(ColumnOptionProvider){
+        var service = this;
+        service.getColumnAlignClass = getColumnAlignClass;
 
-        function TableDataStorageService(){
+        function getColumnAlignClass(alignRule) {
+            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
+                return 'rightAlignedColumn';
+            } else {
+                return 'leftAlignedColumn';
+            }
+        }
+    }
+
+    angular
+        .module('mdDataTable')
+        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
+}());
+(function () {
+    'use strict';
+
+    function TableDataStorageFactory($log) {
+
+        function TableDataStorageService() {
             this.storage = [];
             this.header = [];
 
@@ -253,12 +281,31 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.addHeaderCellData = function(ops){
+        TableDataStorageService.prototype.initModel = function (mdtModel) {
+            this.header = mdtModel.headers;
+            var _storage = this.storage;
+            mdtModel.data.forEach(function (item) {
+                var id = item.id;
+                _storage.push({
+                    rowId: item.id,
+                    optionList: {
+                        selected: false,
+                        deleted: false,
+                        visible: true
+                    },
+                    data: item
+                });
+                delete item.id;
+            });
+        };
+        TableDataStorageService.prototype.addHeaderCellData = function (ops) {
+            debugger;
             this.header.push(ops);
         };
 
-        TableDataStorageService.prototype.addRowData = function(explicitRowId, rowArray){
-            if(!(rowArray instanceof Array)){
+        TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
+            debugger;
+            if (!(rowArray instanceof Array)) {
                 $log.error('`rowArray` parameter should be array');
                 return;
             }
@@ -274,51 +321,51 @@
             });
         };
 
-        TableDataStorageService.prototype.getRowData = function(index){
-            if(!this.storage[index]){
-                $log.error('row is not exists at index: '+index);
+        TableDataStorageService.prototype.getRowData = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
                 return;
             }
 
             return this.storage[index].data;
         };
 
-        TableDataStorageService.prototype.getRowOptions = function(index){
-            if(!this.storage[index]){
-                $log.error('row is not exists at index: '+index);
+        TableDataStorageService.prototype.getRowOptions = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
                 return;
             }
 
             return this.storage[index].optionList;
         };
 
-        TableDataStorageService.prototype.setAllRowsSelected = function(isSelected, isPaginationEnabled){
-            if(typeof isSelected === 'undefined'){
+        TableDataStorageService.prototype.setAllRowsSelected = function (isSelected, isPaginationEnabled) {
+            if (typeof isSelected === 'undefined') {
                 $log.error('`isSelected` parameter is required');
                 return;
             }
 
-            _.each(this.storage, function(rowData){
-                if(isPaginationEnabled) {
+            _.each(this.storage, function (rowData) {
+                if (isPaginationEnabled) {
                     if (rowData.optionList.visible) {
                         rowData.optionList.selected = isSelected ? true : false;
                     }
-                }else{
+                } else {
                     rowData.optionList.selected = isSelected ? true : false;
                 }
             });
         };
 
-        TableDataStorageService.prototype.reverseRows = function(){
+        TableDataStorageService.prototype.reverseRows = function () {
             this.storage.reverse();
         };
 
-        TableDataStorageService.prototype.sortByColumn = function(columnIndex, iteratee){
-            if(this.sortByColumnLastIndex === columnIndex){
+        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee) {
+            if (this.sortByColumnLastIndex === columnIndex) {
                 this.reverseRows();
 
                 this.orderByAscending = !this.orderByAscending;
-            }else{
+            } else {
                 this.sortByColumnIndex(columnIndex, iteratee);
 
                 this.sortByColumnLastIndex = columnIndex;
@@ -328,16 +375,18 @@
             return this.orderByAscending ? -1 : 1;
         };
 
-        TableDataStorageService.prototype.sortByColumnIndex = function(index, iteratee){
+        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee) {
 
             var sortFunction;
             if (typeof iteratee === 'function') {
-                sortFunction = function(rowData) {
+                sortFunction = function (rowData) {
                     return iteratee(rowData.data[index], rowData, index);
                 };
             } else {
+                var id = this.header[index] ? this.header[index].id : undefined;
                 sortFunction = function (rowData) {
-                    return rowData.data[index];
+
+                    return rowData.data[id || index];
                 };
             }
 
@@ -346,31 +395,31 @@
             this.storage = res;
         };
 
-        TableDataStorageService.prototype.isAnyRowSelected = function(){
-            return _.some(this.storage, function(rowData){
+        TableDataStorageService.prototype.isAnyRowSelected = function () {
+            return _.some(this.storage, function (rowData) {
                 return rowData.optionList.selected === true && rowData.optionList.deleted === false;
             });
         };
 
-        TableDataStorageService.prototype.getNumberOfSelectedRows = function(){
-            var res = _.countBy(this.storage, function(rowData){
+        TableDataStorageService.prototype.getNumberOfSelectedRows = function () {
+            var res = _.countBy(this.storage, function (rowData) {
                 return rowData.optionList.selected === true && rowData.optionList.deleted === false ? 'selected' : 'unselected';
             });
 
             return res.selected ? res.selected : 0;
         };
 
-        TableDataStorageService.prototype.deleteSelectedRows = function(){
+        TableDataStorageService.prototype.deleteSelectedRows = function () {
             var deletedRows = [];
 
-            _.each(this.storage, function(rowData){
-                if(rowData.optionList.selected && rowData.optionList.deleted === false){
+            _.each(this.storage, function (rowData) {
+                if (rowData.optionList.selected && rowData.optionList.deleted === false) {
 
-                    if(rowData.rowId){
+                    if (rowData.rowId) {
                         deletedRows.push(rowData.rowId);
 
-                    //Fallback when no id was specified
-                    } else{
+                        //Fallback when no id was specified
+                    } else {
                         deletedRows.push(rowData.data);
                     }
 
@@ -382,7 +431,7 @@
         };
 
         return {
-            getInstance: function(){
+            getInstance: function () {
                 return new TableDataStorageService();
             }
         };
@@ -560,10 +609,12 @@
 
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
             rowData.optionList.selected = true;
-            if (this.tableDataStorageService.storage.selectedRow) {
-                this.tableDataStorageService.storage.selectedRow.optionList.selected = false;
+
+
+            if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
+                this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
-            this.tableDataStorageService.storage.selectedRow = rowData;
+            this.tableDataStorageService.selectedRow = rowData;
         };
 
         mdtPaginationHelper.prototype.getRows = function(){
@@ -605,27 +656,6 @@
 (function(){
     'use strict';
 
-    ColumnAlignmentHelper.$inject = ['ColumnOptionProvider'];
-    function ColumnAlignmentHelper(ColumnOptionProvider){
-        var service = this;
-        service.getColumnAlignClass = getColumnAlignClass;
-
-        function getColumnAlignClass(alignRule) {
-            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
-                return 'rightAlignedColumn';
-            } else {
-                return 'leftAlignedColumn';
-            }
-        }
-    }
-
-    angular
-        .module('mdDataTable')
-        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
-}());
-(function(){
-    'use strict';
-
     var ColumnOptionProvider = {
         ALIGN_RULE : {
             ALIGN_LEFT: 'left',
@@ -636,7 +666,7 @@
     angular.module('mdDataTable')
         .value('ColumnOptionProvider', ColumnOptionProvider);
 })();
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -670,23 +700,31 @@
      *  </mdt-table>
      * </pre>
      */
-    mdtCellDirective.$inject = ['$parse'];
-    function mdtCellDirective($parse){
+    function mdtCellDirective($parse, $compile) {
         return {
             restrict: 'E',
             replace: true,
             transclude: true,
             require: '^mdtRow',
-            link: function($scope, element, attr, mdtRowCtrl, transclude){
+            link: function ($scope, element, attr, mdtRowCtrl, transclude) {
 
                 transclude(function (clone) {
                     //TODO: rework, figure out something for including html content
-                    if(attr.htmlContent){
-                        mdtRowCtrl.addToRowDataStorage(clone, 'htmlContent');
-                    }else{
+                    //scope.$watch($sce.parseAsHtml(attr.htmlContent), function(value) {
+                    //
+                    //});
+                    if (attr.htmlContent) {
+                        var value = $parse(attr.sortVal)($scope.$parent);
+                        mdtRowCtrl.addToRowDataStorage(value, clone, 'htmlContent');
+                    } else {
                         //TODO: better idea?
+                        var value = $parse(attr.sortVal)($scope.$parent);
                         var cellValue = $parse(clone.html().replace('{{', '').replace('}}', ''))($scope.$parent);
-                        mdtRowCtrl.addToRowDataStorage(cellValue);
+                        if (value) {
+                            mdtRowCtrl.addToRowDataStorage(value, cellValue, 'textContent');
+                        } else {
+                            mdtRowCtrl.addToRowDataStorage(cellValue);
+                        }
                     }
                 });
             }
@@ -697,7 +735,7 @@
         .module('mdDataTable')
         .directive('mdtCell', mdtCellDirective);
 }());
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -735,7 +773,7 @@
      *  </mdt-table>
      * </pre>
      */
-    function mdtRowDirective(){
+    function mdtRowDirective() {
         return {
             restrict: 'E',
             transclude: true,
@@ -743,26 +781,28 @@
             scope: {
                 tableRowId: '='
             },
-            controller: ['$scope', function($scope){
+            controller: function ($scope) {
                 var vm = this;
 
                 vm.addToRowDataStorage = addToRowDataStorage;
                 $scope.rowDataStorage = [];
 
-                function addToRowDataStorage(value, contentType){
-                    if(contentType === 'htmlContent'){
-                        $scope.rowDataStorage.push({value: value, type: 'html'});
-                    }else{
+                function addToRowDataStorage(value, content, contentType) {
+                    if (contentType === 'htmlContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'html'});
+                    } else if (contentType === 'textContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'text'});
+                    } else {
                         $scope.rowDataStorage.push(value);
                     }
                 }
-            }],
-            link: function($scope, element, attrs, ctrl, transclude){
+            },
+            link: function ($scope, element, attrs, ctrl, transclude) {
                 appendColumns();
 
                 ctrl.addRowData($scope.tableRowId, $scope.rowDataStorage);
 
-                function appendColumns(){
+                function appendColumns() {
                     transclude(function (clone) {
                         element.append(clone);
                     });
@@ -905,7 +945,6 @@
 (function(){
     'use strict';
 
-    mdtAddAlignClass.$inject = ['ColumnAlignmentHelper'];
     function mdtAddAlignClass(ColumnAlignmentHelper){
         return {
             restrict: 'A',
@@ -924,17 +963,25 @@
         .module('mdDataTable')
         .directive('mdtAddAlignClass', mdtAddAlignClass);
 }());
-(function(){
+(function () {
     'use strict';
 
-    function mdtAddHtmlContentToCellDirective(){
+    function mdtAddHtmlContentToCellDirective() {
         return {
             restrict: 'A',
-            link: function($scope, element, attr){
-                $scope.$watch('htmlContent', function(){
+            scope: {
+                mdtAddHtmlContentToCell: '='
+            },
+            link: function ($scope, element, attr) {
+                $scope.$watch('mdtAddHtmlContentToCell', function () {
                     element.empty();
-                    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                    element.append($scope.mdtAddHtmlContentToCell);
+
                 });
+                //$scope.$watch('htmlContent', function () {
+                //    element.empty();
+                //    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                //});
             }
         };
     }
@@ -995,7 +1042,7 @@
                 $scope.isSorted = isSorted;
                 $scope.direction = 1;
 
-                element.on('click', sortHandler);
+
 
                 function sortHandler(){
                     if($scope.sortableColumns){
@@ -1003,8 +1050,9 @@
                             $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
                         });
                     }
-
                 }
+
+                element.on('click', sortHandler);
 
                 function isSorted(){
                     return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;
@@ -1024,7 +1072,6 @@
 (function(){
     'use strict';
 
-    mdtCardFooterDirective.$inject = ['$timeout'];
     function mdtCardFooterDirective($timeout){
         return {
             restrict: 'E',

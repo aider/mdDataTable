@@ -1,14 +1,22 @@
-(function(){
+(function () {
     'use strict';
 
-    function mdtAddHtmlContentToCellDirective(){
+    function mdtAddHtmlContentToCellDirective() {
         return {
             restrict: 'A',
-            link: function($scope, element, attr){
-                $scope.$watch('htmlContent', function(){
+            scope: {
+                mdtAddHtmlContentToCell: '='
+            },
+            link: function ($scope, element, attr) {
+                $scope.$watch('mdtAddHtmlContentToCell', function () {
                     element.empty();
-                    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                    element.append($scope.mdtAddHtmlContentToCell);
+
                 });
+                //$scope.$watch('htmlContent', function () {
+                //    element.empty();
+                //    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                //});
             }
         };
     }

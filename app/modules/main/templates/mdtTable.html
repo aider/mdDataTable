@@ -10,26 +10,26 @@
 
     <table cellpadding="0" cellspacing="0">
         <thead>
-            <tr class="theadTrRow"
-                mdt-animate-sort-icon-handler>
+        <tr class="theadTrRow"
+            mdt-animate-sort-icon-handler>
 
-                <!-- TODO: fix text-align:left, in theory it should not be there to make it work -->
-                <th class="checkboxCell"
-                    style="text-align:left;"
-                    ng-show="selectableRows"
-                    mdt-select-all-rows-handler>
-                    <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
-                </th>
+            <!-- TODO: fix text-align:left, in theory it should not be there to make it work -->
+            <th class="checkboxCell"
+                style="text-align:left;"
+                ng-show="selectableRows"
+                mdt-select-all-rows-handler>
+                <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
+            </th>
 
-                <th class="column"
-                    ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    mdt-sort-handler
-                    md-ink-ripple="{{rippleEffect}}">
+            <th class="column"
+                ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+                mdt-add-align-class="headerRowData.alignRule"
+                mdt-sort-handler
+                md-ink-ripple="{{rippleEffect}}">
 
-                    <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
-                </th>
-            </tr>
+                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+            </th>
+        </tr>
         </thead>
         <tbody>
         <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
@@ -43,11 +43,10 @@
 
             <td class="column"
                 ng-repeat="cellData in rowData.data track by $index"
-                mdt-add-align-class="tableDataStorageService.header[$index].alignRule">
-
-                <span ng-show="!cellData.type">{{cellData}}</span>
-                <span ng-show="cellData.type === 'html'"
-                      mdt-add-html-content-to-cell="cellData.value"></span>
+                mdt-add-align-class="tableDataStorageService.header[$index].alignRule" ng-switch="tableDataStorageService.header[$index].type">
+                <span ng-switch-when="html" mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
+                <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
+                <span ng-switch-default>{{cellData}}</span>
             </td>
         </tr>
         <tr ng-show="mdtPaginationHelper.isLoading">

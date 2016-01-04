@@ -327,6 +327,7 @@
         };
 
         TableDataStorageService.prototype.sortByColumnIndex = function(index, iteratee){
+
             var sortFunction;
             if (typeof iteratee === 'function') {
                 sortFunction = function(rowData) {
@@ -337,7 +338,7 @@
                     return rowData.data[index];
                 };
             }
-            debugger;
+
             var res = _.sortBy(this.storage, sortFunction);
 
             this.storage = res;
@@ -691,7 +692,6 @@
                         } else {
                             mdtRowCtrl.addToRowDataStorage(cellValue);
                         }
-                        mdtRowCtrl.addToRowDataStorage(cellValue);
                     }
                 });
             }
@@ -940,8 +940,7 @@
                 mdtAddHtmlContentToCell: '='
             },
             link: function ($scope, element, attr) {
-                scope.$watch('mdtAddHtmlContentToCell', function () {
-                    //console.log('alalal');
+                $scope.$watch('mdtAddHtmlContentToCell', function () {
                     element.empty();
                     element.append(scope.mdtAddHtmlContentToCell);
 

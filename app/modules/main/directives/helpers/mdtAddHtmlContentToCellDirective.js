@@ -8,8 +8,7 @@
                 mdtAddHtmlContentToCell: '='
             },
             link: function ($scope, element, attr) {
-                scope.$watch('mdtAddHtmlContentToCell', function () {
-                    //console.log('alalal');
+                $scope.$watch('mdtAddHtmlContentToCell', function () {
                     element.empty();
                     element.append(scope.mdtAddHtmlContentToCell);
 

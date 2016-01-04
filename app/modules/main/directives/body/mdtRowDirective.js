@@ -53,7 +53,7 @@
                 function addToRowDataStorage(value, content, contentType) {
                     if (contentType === 'htmlContent') {
                         $scope.rowDataStorage.push({value: value, content: content, type: 'html'});
-                    }if (contentType === 'textContent') {
+                    } else if (contentType === 'textContent') {
                         $scope.rowDataStorage.push({value: value, content: content, type: 'text'});
                     } else {
                         $scope.rowDataStorage.push(value);

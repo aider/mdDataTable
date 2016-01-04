@@ -10,7 +10,7 @@
             link: function ($scope, element, attr) {
                 $scope.$watch('mdtAddHtmlContentToCell', function () {
                     element.empty();
-                    element.append(scope.mdtAddHtmlContentToCell);
+                    element.append($scope.mdtAddHtmlContentToCell);
 
                 });
                 //$scope.$watch('htmlContent', function () {

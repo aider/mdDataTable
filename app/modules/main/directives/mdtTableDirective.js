@@ -134,7 +134,6 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
                         if(data) {
-                            debugger;
                             $scope.tableDataStorageService.initModel(data);
                             unbindWatchMdtModel();
                         }

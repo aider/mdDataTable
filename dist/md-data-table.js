@@ -166,7 +166,6 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
                         if(data) {
-                            debugger;
                             $scope.tableDataStorageService.initModel(data);
                             unbindWatchMdtModel();
                         }
@@ -248,6 +247,26 @@
     angular
         .module('mdDataTable')
         .directive('mdtTable', mdtTableDirective);
+}());
+(function(){
+    'use strict';
+
+    function ColumnAlignmentHelper(ColumnOptionProvider){
+        var service = this;
+        service.getColumnAlignClass = getColumnAlignClass;
+
+        function getColumnAlignClass(alignRule) {
+            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
+                return 'rightAlignedColumn';
+            } else {
+                return 'leftAlignedColumn';
+            }
+        }
+    }
+
+    angular
+        .module('mdDataTable')
+        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
 }());
 (function () {
     'use strict';
@@ -590,10 +609,12 @@
 
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
             rowData.optionList.selected = true;
-            if (this.tableDataStorageService.storage.selectedRow) {
-                this.tableDataStorageService.storage.selectedRow.optionList.selected = false;
+
+
+            if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
+                this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
-            this.tableDataStorageService.storage.selectedRow = rowData;
+            this.tableDataStorageService.selectedRow = rowData;
         };
 
         mdtPaginationHelper.prototype.getRows = function(){
@@ -631,26 +652,6 @@
     angular
         .module('mdDataTable')
         .service('mdtPaginationHelperFactory', mdtPaginationHelperFactory);
-}());
-(function(){
-    'use strict';
-
-    function ColumnAlignmentHelper(ColumnOptionProvider){
-        var service = this;
-        service.getColumnAlignClass = getColumnAlignClass;
-
-        function getColumnAlignClass(alignRule) {
-            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
-                return 'rightAlignedColumn';
-            } else {
-                return 'leftAlignedColumn';
-            }
-        }
-    }
-
-    angular
-        .module('mdDataTable')
-        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
 }());
 (function(){
     'use strict';

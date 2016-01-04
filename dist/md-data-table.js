@@ -327,7 +327,6 @@
         };
 
         TableDataStorageService.prototype.sortByColumnIndex = function(index, iteratee){
-
             var sortFunction;
             if (typeof iteratee === 'function') {
                 sortFunction = function(rowData) {
@@ -338,7 +337,7 @@
                     return rowData.data[index];
                 };
             }
-
+            debugger;
             var res = _.sortBy(this.storage, sortFunction);
 
             this.storage = res;
@@ -633,7 +632,7 @@
     angular.module('mdDataTable')
         .value('ColumnOptionProvider', ColumnOptionProvider);
 })();
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -667,21 +666,31 @@
      *  </mdt-table>
      * </pre>
      */
-    function mdtCellDirective($parse){
+    function mdtCellDirective($parse, $compile) {
         return {
             restrict: 'E',
             replace: true,
             transclude: true,
             require: '^mdtRow',
-            link: function($scope, element, attr, mdtRowCtrl, transclude){
+            link: function ($scope, element, attr, mdtRowCtrl, transclude) {
 
                 transclude(function (clone) {
                     //TODO: rework, figure out something for including html content
-                    if(attr.htmlContent){
-                        mdtRowCtrl.addToRowDataStorage(clone, 'htmlContent');
-                    }else{
+                    //scope.$watch($sce.parseAsHtml(attr.htmlContent), function(value) {
+                    //
+                    //});
+                    if (attr.htmlContent) {
+                        var value = $parse(attr.sortVal)($scope.$parent);
+                        mdtRowCtrl.addToRowDataStorage(value, clone, 'htmlContent');
+                    } else {
                         //TODO: better idea?
+                        var value = $parse(attr.sortVal)($scope.$parent);
                         var cellValue = $parse(clone.html().replace('{{', '').replace('}}', ''))($scope.$parent);
+                        if (value) {
+                            mdtRowCtrl.addToRowDataStorage(value, cellValue, 'textContent');
+                        } else {
+                            mdtRowCtrl.addToRowDataStorage(cellValue);
+                        }
                         mdtRowCtrl.addToRowDataStorage(cellValue);
                     }
                 });
@@ -693,7 +702,7 @@
         .module('mdDataTable')
         .directive('mdtCell', mdtCellDirective);
 }());
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -731,7 +740,7 @@
      *  </mdt-table>
      * </pre>
      */
-    function mdtRowDirective(){
+    function mdtRowDirective() {
         return {
             restrict: 'E',
             transclude: true,
@@ -739,26 +748,28 @@
             scope: {
                 tableRowId: '='
             },
-            controller: function($scope){
+            controller: function ($scope) {
                 var vm = this;
 
                 vm.addToRowDataStorage = addToRowDataStorage;
                 $scope.rowDataStorage = [];
 
-                function addToRowDataStorage(value, contentType){
-                    if(contentType === 'htmlContent'){
-                        $scope.rowDataStorage.push({value: value, type: 'html'});
-                    }else{
+                function addToRowDataStorage(value, content, contentType) {
+                    if (contentType === 'htmlContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'html'});
+                    }if (contentType === 'textContent') {
+                        $scope.rowDataStorage.push({value: value, content: content, type: 'text'});
+                    } else {
                         $scope.rowDataStorage.push(value);
                     }
                 }
             },
-            link: function($scope, element, attrs, ctrl, transclude){
+            link: function ($scope, element, attrs, ctrl, transclude) {
                 appendColumns();
 
                 ctrl.addRowData($scope.tableRowId, $scope.rowDataStorage);
 
-                function appendColumns(){
+                function appendColumns() {
                     transclude(function (clone) {
                         element.append(clone);
                     });
@@ -919,17 +930,26 @@
         .module('mdDataTable')
         .directive('mdtAddAlignClass', mdtAddAlignClass);
 }());
-(function(){
+(function () {
     'use strict';
 
-    function mdtAddHtmlContentToCellDirective(){
+    function mdtAddHtmlContentToCellDirective() {
         return {
             restrict: 'A',
-            link: function($scope, element, attr){
-                $scope.$watch('htmlContent', function(){
+            scope: {
+                mdtAddHtmlContentToCell: '='
+            },
+            link: function ($scope, element, attr) {
+                scope.$watch('mdtAddHtmlContentToCell', function () {
+                    //console.log('alalal');
                     element.empty();
-                    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                    element.append(scope.mdtAddHtmlContentToCell);
+
                 });
+                //$scope.$watch('htmlContent', function () {
+                //    element.empty();
+                //    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                //});
             }
         };
     }
@@ -990,7 +1010,7 @@
                 $scope.isSorted = isSorted;
                 $scope.direction = 1;
 
-                element.on('click', sortHandler);
+
 
                 function sortHandler(){
                     if($scope.sortableColumns){
@@ -998,8 +1018,9 @@
                             $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
                         });
                     }
-
                 }
+
+                element.on('click', sortHandler);
 
                 function isSorted(){
                     return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;

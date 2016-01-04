@@ -10,7 +10,7 @@
                 $scope.isSorted = isSorted;
                 $scope.direction = 1;
 
-                element.on('click', sortHandler);
+
 
                 function sortHandler(){
                     if($scope.sortableColumns){
@@ -18,8 +18,9 @@
                             $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
                         });
                     }
-
                 }
+
+                element.on('click', sortHandler);
 
                 function isSorted(){
                     return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;

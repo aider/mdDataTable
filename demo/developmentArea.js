@@ -142,9 +142,8 @@
                     columnDefinition: "Dessert (100g serving)",
                     alignRule: "left",
                     content: function (rowData) {
-                        var content =  "<md-icon class='material-icons'>folder</md-icon><span class=\"principal-title\">"+rowData.data.name+"</span>";
-
-                        return content;
+                        //return "<md-icon class='material-icons'>folder</md-icon><span class=\"principal-title\">" + rowData.data.name + "</span>";
+                        return "<span class=\"principal-title\">" + rowData.data.name + "</span>";
                     },
                     type: 'html'
                 },
@@ -164,7 +163,7 @@
                     id: "date",
                     columnName: "Date",
                     columnDefinition: "Date",
-                    alignRule: "left",
+                    alignRule: "right",
                     type: "date"
                 }
             ]

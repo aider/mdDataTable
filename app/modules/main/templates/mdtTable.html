@@ -1,32 +1,41 @@
-<md-content class="mdtTable md-whiteframe-z1" layout="column">
-    <!-- table card -->
-    <mdt-card-header ng-hide="alternateHeaders && isAnyRowSelected()"></mdt-card-header>
 
-    <!-- alternate headers -->
-    <mdt-alternate-headers ng-show="alternateHeaders && isAnyRowSelected()"></mdt-alternate-headers>
-    <!-- alternate headers end -->
 
-    <div id="reader" style="display:none;"></div>
+<md-content flex class="mdtTable md-whiteframe-z1" layout="column">
+    <!--<md-content class="mdtTable md-whiteframe-z1" layout="column">-->
+    <!--<md-content class="mdtTable md-whiteframe-z1" layout="column">-->
+    <!--
+        &lt;!&ndash; table card &ndash;&gt;
+        <mdt-card-header ng-hide="alternateHeaders && isAnyRowSelected()"></mdt-card-header>
 
-    <div id="gridview-header-container">
-        <table id="gridview-header" class="table"
-               cellspacing="0" widtsph="100%">
+        &lt;!&ndash; alternate headers &ndash;&gt;
+        <mdt-alternate-headers ng-show="alternateHeaders && isAnyRowSelected()"></mdt-alternate-headers>
+        &lt;!&ndash; alternate headers end &ndash;&gt;
+
+        <div id="reader" style="display:none;"></div>
+    -->
+
+    <div flex layout="row" layout-align="center">
+        <table cellpadding="0" cellspacing="0" width="100%">
             <thead>
             <tr class="theadTrRow"
                 mdt-animate-sort-icon-handler>
 
-                <!-- TODO: fix text-align:left, in theory it should not be there to make it work -->
                 <th class="checkboxCell"
                     style="text-align:left;"
-                    ng-show="selectableRows"
+                    ng-if="selectableRows"
                     mdt-select-all-rows-handler>
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
 
+
+                <!--
+
+                                    ng-class="'th-column'+$index"
+                    ng-style="{width: minSize[prop.id]}"-->
                 <th class="column"
                     ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                     mdt-add-align-class="headerRowData.alignRule"
-                    ng-class="'th-column'+$index" ng-style="{width: minSize[prop.id]}"
+
                     mdt-sort-handler
                     md-ink-ripple="{{rippleEffect}}">
 
@@ -34,60 +43,80 @@
                 </th>
             </tr>
             </thead>
-            <!--<thead>
-                <tr>
-                    <th data-ng-repeat="prop in props | orderBy:'sequence'" ng-class="'th-column'+$index" ng-style="{width: minSize[prop.id]}" ng-click="sortClick(prop.order || prop.id)" ng-if="prop.enabled">
-                        <span ng-if="prop.editable" class="ic-header-spasing"></span>
-                        <span ng-bind="prop.name"></span>
-                        <span ng-hide="predicate !== '-'+(prop.order || prop.id)" ng-class="{true: 'icon-arrow-up2', false: 'icon-arrow-down2'}[reverse]"></span>
+        </table>
+
+    </div>
+    <md-content flex layout="row" layout-align="center">
+        <md-content flex>
+            <table cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeight()}">
+                <thead id="hiddenHead" style="visibility: hidden;">
+                <tr class="theadTrRow"
+                    mdt-animate-sort-icon-handler>
+
+                    <th class="checkboxCell"
+                        style="text-align:left;"
+                        ng-if="selectableRows"
+                        mdt-select-all-rows-handler>
+                        <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                     </th>
-                    <th id="scrollBarSpace"></th>
+
+
+                    <!--
+
+                                        ng-class="'th-column'+$index"
+                        ng-style="{width: minSize[prop.id]}"-->
+                    <th class="column"
+                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+                        mdt-add-align-class="headerRowData.alignRule"
+
+                        mdt-sort-handler
+                        md-ink-ripple="{{rippleEffect}}">
+
+                        <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+                    </th>
                 </tr>
-            </thead>-->
-        </table>
-    </div>
-    <div class="gridview-data" ng-cloak>
-        <table cellpadding="0" cellspacing="0">
-            <thead style="visibility: hidden;">
-            <tr style="height: 0;">
-                <th data-ng-repeat="prop in props | orderBy:'sequence'" ng-class="'td-column'+$index">
-                    <span ng-bind="prop.name"></span>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
-                ng-class="{'selectedRow': rowData.optionList.selected}"
-                ng-click="mdtPaginationHelper.selectRow(rowData)"
-                ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
+                </thead>
+                <tbody>
+                <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
+                    ng-class="{'selectedRow': rowData.optionList.selected}"
+                    ng-click="mdtPaginationHelper.selectRow(rowData)"
+                    ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
-                <td class="checkboxCell" ng-show="selectableRows">
-                    <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
-                </td>
+                    <td class="checkboxCell" ng-show="selectableRows">
+                        <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
+                    </td>
 
-                <td class="column"
-                    ng-repeat="cellData in rowData.data track by $index"
-                    mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                    ng-switch="tableDataStorageService.header[$index].type">
-                <span ng-switch-when="html"
-                      mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                    <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
-                    <span ng-switch-default>{{cellData}}</span>
-                </td>
-            </tr>
-            <tr ng-show="mdtPaginationHelper.isLoading">
-                <td colspan="999">
-                    <md-progress-linear md-mode="indeterminate"></md-progress-linear>
-                </td>
-            </tr>
-            <tr ng-show="mdtPaginationHelper.isLoadError">
-                <td colspan="999">
-                    {{mdtPaginationHelper.mdtRowPaginatorErrorMessage}}
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+                    <td class="column"
+                        ng-repeat="cellData in rowData.data track by $index"
+                        mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
+                        ng-switch="tableDataStorageService.header[$index].type">
+                    <span ng-switch-when="html"
+                          mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
+                        <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
+                        <span ng-switch-default>{{cellData}}</span>
+                    </td>
+                </tr>
+                <tr ng-show="mdtPaginationHelper.isLoading">
+                    <td colspan="999">
+                        <md-progress-linear md-mode="indeterminate"></md-progress-linear>
+                    </td>
+                </tr>
+                <tr ng-show="mdtPaginationHelper.isLoadError">
+                    <td colspan="999">
+                        {{mdtPaginationHelper.mdtRowPaginatorErrorMessage}}
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </md-content>
+
+
+    </md-content>
+
+
+
+
     <!-- table card -->
     <mdt-card-footer></mdt-card-footer>
     <!-- table card end -->

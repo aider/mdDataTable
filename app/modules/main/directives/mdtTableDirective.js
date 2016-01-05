@@ -1,4 +1,4 @@
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -89,11 +89,12 @@
      *     </mdt-table>
      * </pre>
      */
-    function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory){
+    function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory) {
         return {
             restrict: 'E',
             templateUrl: '/main/templates/mdtTable.html',
             transclude: true,
+            replace: true,
             scope: {
                 tableCard: '=',
                 selectableRows: '=',
@@ -106,21 +107,21 @@
                 mdtModel: '=',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
-                mdtRowPaginatorErrorMessage:"@"
+                mdtRowPaginatorErrorMessage: "@"
             },
-            controller: function($scope){
+            controller: function ($scope) {
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
                 initTableStorageServiceAndBindMethods();
 
-                function initTableStorageServiceAndBindMethods(){
+                function initTableStorageServiceAndBindMethods() {
                     $scope.tableDataStorageService = TableDataStorageFactory.getInstance();
 
-                    if(!$scope.mdtRowPaginator){
+                    if (!$scope.mdtRowPaginator) {
                         $scope.mdtPaginationHelper = mdtPaginationHelperFactory
                             .getInstance($scope.tableDataStorageService, $scope.paginatedRows, $scope.mdtRow);
-                    }else{
+                    } else {
                         $scope.mdtPaginationHelper = mdtAjaxPaginationHelperFactory.getInstance({
                             tableDataStorageService: $scope.tableDataStorageService,
                             paginationSetting: $scope.paginatedRows,
@@ -132,8 +133,8 @@
 
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
 
-                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
-                        if(data) {
+                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
+                        if (data) {
                             $scope.tableDataStorageService.initModel(data);
                             unbindWatchMdtModel();
                         }
@@ -141,18 +142,21 @@
                 }
 
 
-                function addHeaderCell(ops){
+                function addHeaderCell(ops) {
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
             },
-            link: function($scope, element, attrs, ctrl, transclude){
+            link: function ($scope, element, attrs, ctrl, transclude) {
                 injectContentIntoTemplate();
 
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
+                $scope.hiddenHeight = function () {
+                    return -$('#hiddenHead',element).height();
+                };
 
-                if(!_.isEmpty($scope.mdtRow)) {
+                if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
                     if (angular.isUndefined(attrs.mdtRowPaginator)) {
                         $scope.$watch('mdtRow', function (mdtRow) {
@@ -162,19 +166,19 @@
                         }, true);
 
 
-                    }else{
+                    } else {
                         //if it's used for 'Ajax pagination'
                     }
                 }
 
-                function addRawDataToStorage(data){
+                function addRawDataToStorage(data) {
                     var rowId;
                     var columnValues = [];
-                    _.each(data, function(row){
+                    _.each(data, function (row) {
                         rowId = _.get(row, $scope.mdtRow['table-row-id-key']);
                         columnValues = [];
 
-                        _.each($scope.mdtRow['column-keys'], function(columnKey){
+                        _.each($scope.mdtRow['column-keys'], function (columnKey) {
                             columnValues.push(_.get(row, columnKey));
                         });
 
@@ -182,15 +186,15 @@
                     });
                 }
 
-                function isPaginationEnabled(){
-                    if($scope.paginatedRows === true || ($scope.paginatedRows && $scope.paginatedRows.hasOwnProperty('isEnabled') && $scope.paginatedRows.isEnabled === true)){
+                function isPaginationEnabled() {
+                    if ($scope.paginatedRows === true || ($scope.paginatedRows && $scope.paginatedRows.hasOwnProperty('isEnabled') && $scope.paginatedRows.isEnabled === true)) {
                         return true;
                     }
 
                     return false;
                 }
 
-                function injectContentIntoTemplate(){
+                function injectContentIntoTemplate() {
                     transclude(function (clone) {
                         var headings = [];
                         var body = [];

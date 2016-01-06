@@ -1,20 +1,6 @@
-
-
 <md-content flex class="mdtTable md-whiteframe-z1" layout="column">
-    <!--<md-content class="mdtTable md-whiteframe-z1" layout="column">-->
-    <!--<md-content class="mdtTable md-whiteframe-z1" layout="column">-->
-    <!--
-        &lt;!&ndash; table card &ndash;&gt;
-        <mdt-card-header ng-hide="alternateHeaders && isAnyRowSelected()"></mdt-card-header>
 
-        &lt;!&ndash; alternate headers &ndash;&gt;
-        <mdt-alternate-headers ng-show="alternateHeaders && isAnyRowSelected()"></mdt-alternate-headers>
-        &lt;!&ndash; alternate headers end &ndash;&gt;
-
-        <div id="reader" style="display:none;"></div>
-    -->
-
-    <div flex layout="row" layout-align="center">
+    <div layout="row" layout-align="center">
         <table cellpadding="0" cellspacing="0" width="100%">
             <thead>
             <tr class="theadTrRow"
@@ -26,13 +12,8 @@
                     mdt-select-all-rows-handler>
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
-
-
-                <!--
-
-                                    ng-class="'th-column'+$index"
-                    ng-style="{width: minSize[prop.id]}"-->
                 <th class="column"
+                    ng-style="{'width': columnWidth($index)}"
                     ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                     mdt-add-align-class="headerRowData.alignRule"
 
@@ -60,15 +41,10 @@
                         <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                     </th>
 
-
-                    <!--
-
-                                        ng-class="'th-column'+$index"
-                        ng-style="{width: minSize[prop.id]}"-->
                     <th class="column"
                         ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                         mdt-add-align-class="headerRowData.alignRule"
-
+                        ng-class="'columnSize'+$index"
                         mdt-sort-handler
                         md-ink-ripple="{{rippleEffect}}">
 
@@ -113,8 +89,6 @@
 
 
     </md-content>
-
-
 
 
     <!-- table card -->

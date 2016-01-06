@@ -152,8 +152,12 @@
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
+                $scope.columnWidth = function (i) {
+                    return $('.columnSize' + i, element).width();
+                };
+
                 $scope.hiddenHeight = function () {
-                    return -$('#hiddenHead',element).height();
+                    return -$('#hiddenHead', element).height();
                 };
 
                 if (!_.isEmpty($scope.mdtRow)) {

@@ -104,6 +104,7 @@
                 animateSortIcon: '=',
                 rippleEffect: '=',
                 paginatedRows: '=',
+                mdtOnresize: '=',
                 mdtModel: '=',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
@@ -152,14 +153,44 @@
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
-                $scope.columnWidth = function (i) {
+                var columnWidth = function (i) {
                     return $('.columnSize' + i, element).width();
                 };
+                //$scope.tableDataStorageService.headers.forEach(function(item, i) {
+                //    $scope.columnWidth[i] = columnWidth(i);
+                //});
+
 
                 $scope.hiddenHeight = function () {
                     return -$('#hiddenHead', element).height();
                 };
+                $scope.columnWidth = {};
 
+                var widthListener = function () {
+
+                    if (!$scope.tableDataStorageService || !$scope.tableDataStorageService.header) {
+                        return;
+                    }
+                    $scope.tableDataStorageService.header.forEach(function (item, i) {
+                        $scope.columnWidth[i] = columnWidth(i);
+                        console.log('$scope.columnWidth[' + i + '] = ' + $scope.columnWidth[i]);
+                    });
+                };
+                $scope.$watch('mdtOnresize', widthListener);
+                angular.element($window).bind('resize', function() {
+                    widthListener
+                    scope.$apply();
+                });
+
+                //var $apply = function(fn) {
+                //    try {
+                //        fn();
+                //    } finally {
+                //        $scope.$digest();
+                //    }
+                //};
+                //$scope.$watch(hiddenHeight, function () {
+                //});
                 if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
                     if (angular.isUndefined(attrs.mdtRowPaginator)) {

@@ -1,4 +1,4 @@
-<md-content flex class="mdtTable md-whiteframe-z1" layout="column">
+<md-content flex class="mdtTable md-whiteframe-z1" layout="column" ng-cloak>
 
     <div layout="row" layout-align="center">
         <table cellpadding="0" cellspacing="0" width="100%">
@@ -13,7 +13,8 @@
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
                 <th class="column"
-                    ng-style="{'width': columnWidth($index)}"
+                    ng-style="{'width': columnWidth[$index]}"
+
                     ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                     mdt-add-align-class="headerRowData.alignRule"
 
@@ -69,7 +70,7 @@
                     <span ng-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
                         <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
-                        <span ng-switch-default>{{cellData}}</span>
+                        <span ng-switch-default ng-bind="cellData"></span>
                     </td>
                 </tr>
                 <tr ng-show="mdtPaginationHelper.isLoading">

@@ -136,12 +136,13 @@
                 animateSortIcon: '=',
                 rippleEffect: '=',
                 paginatedRows: '=',
+                mdtOnresize: '=',
                 mdtModel: '=',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
             },
-            controller: function ($scope) {
+            controller: function ($scope,$window) {
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
@@ -184,14 +185,44 @@
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
-                $scope.columnWidth = function (i) {
+                var columnWidth = function (i) {
                     return $('.columnSize' + i, element).width();
                 };
+                //$scope.tableDataStorageService.headers.forEach(function(item, i) {
+                //    $scope.columnWidth[i] = columnWidth(i);
+                //});
+
 
                 $scope.hiddenHeight = function () {
                     return -$('#hiddenHead', element).height();
                 };
+                $scope.columnWidth = {};
 
+                var widthListener = function () {
+
+                    if (!$scope.tableDataStorageService || !$scope.tableDataStorageService.header) {
+                        return;
+                    }
+                    $scope.tableDataStorageService.header.forEach(function (item, i) {
+                        $scope.columnWidth[i] = columnWidth(i);
+                        console.log('$scope.columnWidth[' + i + '] = ' + $scope.columnWidth[i]);
+                    });
+                };
+                $scope.$watch('mdtOnresize', widthListener);
+                angular.element($window).bind('resize', function() {
+                    widthListener
+                    scope.$apply();
+                });
+
+                //var $apply = function(fn) {
+                //    try {
+                //        fn();
+                //    } finally {
+                //        $scope.$digest();
+                //    }
+                //};
+                //$scope.$watch(hiddenHeight, function () {
+                //});
                 if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
                     if (angular.isUndefined(attrs.mdtRowPaginator)) {
@@ -674,260 +705,6 @@
     angular.module('mdDataTable')
         .value('ColumnOptionProvider', ColumnOptionProvider);
 })();
-(function(){
-    'use strict';
-
-    function mdtAddAlignClass(ColumnAlignmentHelper){
-        return {
-            restrict: 'A',
-            scope: {
-                mdtAddAlignClass: '='
-            },
-            link: function($scope, element){
-                var classToAdd = ColumnAlignmentHelper.getColumnAlignClass($scope.mdtAddAlignClass);
-
-                element.addClass(classToAdd);
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtAddAlignClass', mdtAddAlignClass);
-}());
-(function () {
-    'use strict';
-
-    function mdtAddHtmlContentToCellDirective() {
-        return {
-            restrict: 'A',
-            scope: {
-                mdtAddHtmlContentToCell: '='
-            },
-            link: function ($scope, element, attr) {
-                $scope.$watch('mdtAddHtmlContentToCell', function () {
-                    element.empty();
-                    element.append($scope.mdtAddHtmlContentToCell);
-
-                });
-                //$scope.$watch('htmlContent', function () {
-                //    element.empty();
-                //    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
-                //});
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtAddHtmlContentToCell', mdtAddHtmlContentToCellDirective);
-}());
-(function(){
-    'use strict';
-
-    function mdtAnimateSortIconHandlerDirective(){
-        return {
-            restrict: 'A',
-            scope: false,
-            link: function($scope, element){
-                if($scope.animateSortIcon){
-                    element.addClass('animate-sort-icon');
-                }
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtAnimateSortIconHandler', mdtAnimateSortIconHandlerDirective);
-}());
-(function(){
-    'use strict';
-
-    function mdtSelectAllRowsHandlerDirective(){
-        return {
-            restrict: 'A',
-            scope: false,
-            link: function($scope){
-                $scope.selectAllRows = false;
-
-                $scope.$watch('selectAllRows', function(val){
-                    $scope.tableDataStorageService.setAllRowsSelected(val, $scope.isPaginationEnabled());
-                });
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtSelectAllRowsHandler', mdtSelectAllRowsHandlerDirective);
-}());
-(function(){
-    'use strict';
-
-    function mdtSortHandlerDirective(){
-        return {
-            restrict: 'A',
-            scope: false,
-            link: function($scope, element){
-                var columnIndex = $scope.$index;
-                $scope.isSorted = isSorted;
-                $scope.direction = 1;
-
-
-
-                function sortHandler(){
-                    if($scope.sortableColumns){
-                        $scope.$apply(function(){
-                            $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
-                        });
-                    }
-                }
-
-                element.on('click', sortHandler);
-
-                function isSorted(){
-                    return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;
-                }
-
-                $scope.$on('$destroy', function(){
-                    element.off('click', sortHandler);
-                });
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtSortHandler', mdtSortHandlerDirective);
-}());
-(function(){
-    'use strict';
-
-    /**
-     * @ngdoc directive
-     * @name mdtColumn
-     * @restrict E
-     * @requires mdtTable
-     *
-     * @description
-     * Representing a header column cell which should be placed inside `mdt-header-row` element directive.
-     *
-     * @param {string=} alignRule align cell content. This settings will have affect on each data cells in the same
-     *  column (e.g. every x.th cell in every row).
-     *
-     *  Assignable values:
-     *    - 'left'
-     *    - 'right'
-     *
-     * @param {function()=} sortBy compareFunction callback for sorting the column data's. As every compare function,
-     *  should get two parameters and return with the comapred result (-1,1,0)
-     *
-     * @param {string=} columnDefinition displays a tooltip on hover.
-     *
-     * @example
-     * <pre>
-     *  <mdt-table>
-     *      <mdt-header-row>
-     *          <mdt-column align-rule="left">Product name</mdt-column>
-     *          <mdt-column
-     *              align-rule="right"
-     *              column-definition="The price of the product in gross.">Price</mdt-column>
-     *      </mdt-header-row>
-     *
-     *      <mdt-row ng-repeat="product in ctrl.products">
-     *          <mdt-cell>{{product.name}}</mdt-cell>
-     *          <mdt-cell>{{product.price}}</mdt-cell>
-     *      </mdt-row>
-     *  </mdt-table>
-     * </pre>
-     */
-    function mdtColumnDirective(){
-        return {
-            restrict: 'E',
-            transclude: true,
-            replace: true,
-            scope: {
-                alignRule: '@',
-                sortBy: '=',
-                columnDefinition: '@'
-            },
-            require: ['^mdtTable'],
-            link: function ($scope, element, attrs, ctrl, transclude) {
-                var mdtTableCtrl = ctrl[0];
-
-                transclude(function (clone) {
-                    mdtTableCtrl.addHeaderCell({
-                        alignRule: $scope.alignRule,
-                        sortBy: $scope.sortBy,
-                        columnDefinition: $scope.columnDefinition,
-                        columnName: clone.html()
-                    });
-                });
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtColumn', mdtColumnDirective);
-}());
-(function(){
-    'use strict';
-
-    function mdtGeneratedHeaderCellContentDirective(){
-        return {
-            restrict: 'E',
-            templateUrl: '/main/templates/mdtGeneratedHeaderCellContent.html',
-            replace: true,
-            scope: false,
-            link: function(){
-
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtGeneratedHeaderCellContent', mdtGeneratedHeaderCellContentDirective);
-}());
-(function(){
-    'use strict';
-
-    /**
-     * @ngdoc directive
-     * @name mdtHeaderRow
-     * @restrict E
-     * @requires mdtTable
-     *
-     * @description
-     * Representing a header row which should be placed inside `mdt-table` element directive.
-     * The main responsibility of this directive is to execute all the transcluded `mdt-column` element directives.
-     *
-     */
-    function mdtHeaderRowDirective(){
-        return {
-            restrict: 'E',
-            replace: true,
-            transclude: true,
-            require: '^mdtTable',
-            scope: true,
-            link: function($scope, element, attrs, mdtCtrl, transclude){
-                appendColumns();
-
-                function appendColumns(){
-                    transclude(function (clone) {
-                        element.append(clone);
-                    });
-                }
-            }
-        };
-    }
-
-    angular
-        .module('mdDataTable')
-        .directive('mdtHeaderRow', mdtHeaderRowDirective);
-}());
 (function () {
     'use strict';
 
@@ -1076,6 +853,260 @@
     angular
         .module('mdDataTable')
         .directive('mdtRow', mdtRowDirective);
+}());
+(function(){
+    'use strict';
+
+    /**
+     * @ngdoc directive
+     * @name mdtColumn
+     * @restrict E
+     * @requires mdtTable
+     *
+     * @description
+     * Representing a header column cell which should be placed inside `mdt-header-row` element directive.
+     *
+     * @param {string=} alignRule align cell content. This settings will have affect on each data cells in the same
+     *  column (e.g. every x.th cell in every row).
+     *
+     *  Assignable values:
+     *    - 'left'
+     *    - 'right'
+     *
+     * @param {function()=} sortBy compareFunction callback for sorting the column data's. As every compare function,
+     *  should get two parameters and return with the comapred result (-1,1,0)
+     *
+     * @param {string=} columnDefinition displays a tooltip on hover.
+     *
+     * @example
+     * <pre>
+     *  <mdt-table>
+     *      <mdt-header-row>
+     *          <mdt-column align-rule="left">Product name</mdt-column>
+     *          <mdt-column
+     *              align-rule="right"
+     *              column-definition="The price of the product in gross.">Price</mdt-column>
+     *      </mdt-header-row>
+     *
+     *      <mdt-row ng-repeat="product in ctrl.products">
+     *          <mdt-cell>{{product.name}}</mdt-cell>
+     *          <mdt-cell>{{product.price}}</mdt-cell>
+     *      </mdt-row>
+     *  </mdt-table>
+     * </pre>
+     */
+    function mdtColumnDirective(){
+        return {
+            restrict: 'E',
+            transclude: true,
+            replace: true,
+            scope: {
+                alignRule: '@',
+                sortBy: '=',
+                columnDefinition: '@'
+            },
+            require: ['^mdtTable'],
+            link: function ($scope, element, attrs, ctrl, transclude) {
+                var mdtTableCtrl = ctrl[0];
+
+                transclude(function (clone) {
+                    mdtTableCtrl.addHeaderCell({
+                        alignRule: $scope.alignRule,
+                        sortBy: $scope.sortBy,
+                        columnDefinition: $scope.columnDefinition,
+                        columnName: clone.html()
+                    });
+                });
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtColumn', mdtColumnDirective);
+}());
+(function(){
+    'use strict';
+
+    function mdtGeneratedHeaderCellContentDirective(){
+        return {
+            restrict: 'E',
+            templateUrl: '/main/templates/mdtGeneratedHeaderCellContent.html',
+            replace: true,
+            scope: false,
+            link: function(){
+
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtGeneratedHeaderCellContent', mdtGeneratedHeaderCellContentDirective);
+}());
+(function(){
+    'use strict';
+
+    /**
+     * @ngdoc directive
+     * @name mdtHeaderRow
+     * @restrict E
+     * @requires mdtTable
+     *
+     * @description
+     * Representing a header row which should be placed inside `mdt-table` element directive.
+     * The main responsibility of this directive is to execute all the transcluded `mdt-column` element directives.
+     *
+     */
+    function mdtHeaderRowDirective(){
+        return {
+            restrict: 'E',
+            replace: true,
+            transclude: true,
+            require: '^mdtTable',
+            scope: true,
+            link: function($scope, element, attrs, mdtCtrl, transclude){
+                appendColumns();
+
+                function appendColumns(){
+                    transclude(function (clone) {
+                        element.append(clone);
+                    });
+                }
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtHeaderRow', mdtHeaderRowDirective);
+}());
+(function(){
+    'use strict';
+
+    function mdtAddAlignClass(ColumnAlignmentHelper){
+        return {
+            restrict: 'A',
+            scope: {
+                mdtAddAlignClass: '='
+            },
+            link: function($scope, element){
+                var classToAdd = ColumnAlignmentHelper.getColumnAlignClass($scope.mdtAddAlignClass);
+
+                element.addClass(classToAdd);
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtAddAlignClass', mdtAddAlignClass);
+}());
+(function () {
+    'use strict';
+
+    function mdtAddHtmlContentToCellDirective() {
+        return {
+            restrict: 'A',
+            scope: {
+                mdtAddHtmlContentToCell: '='
+            },
+            link: function ($scope, element, attr) {
+                $scope.$watch('mdtAddHtmlContentToCell', function () {
+                    element.empty();
+                    element.append($scope.mdtAddHtmlContentToCell);
+
+                });
+                //$scope.$watch('htmlContent', function () {
+                //    element.empty();
+                //    element.append($scope.$eval(attr.mdtAddHtmlContentToCell));
+                //});
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtAddHtmlContentToCell', mdtAddHtmlContentToCellDirective);
+}());
+(function(){
+    'use strict';
+
+    function mdtAnimateSortIconHandlerDirective(){
+        return {
+            restrict: 'A',
+            scope: false,
+            link: function($scope, element){
+                if($scope.animateSortIcon){
+                    element.addClass('animate-sort-icon');
+                }
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtAnimateSortIconHandler', mdtAnimateSortIconHandlerDirective);
+}());
+(function(){
+    'use strict';
+
+    function mdtSelectAllRowsHandlerDirective(){
+        return {
+            restrict: 'A',
+            scope: false,
+            link: function($scope){
+                $scope.selectAllRows = false;
+
+                $scope.$watch('selectAllRows', function(val){
+                    $scope.tableDataStorageService.setAllRowsSelected(val, $scope.isPaginationEnabled());
+                });
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtSelectAllRowsHandler', mdtSelectAllRowsHandlerDirective);
+}());
+(function(){
+    'use strict';
+
+    function mdtSortHandlerDirective(){
+        return {
+            restrict: 'A',
+            scope: false,
+            link: function($scope, element){
+                var columnIndex = $scope.$index;
+                $scope.isSorted = isSorted;
+                $scope.direction = 1;
+
+
+
+                function sortHandler(){
+                    if($scope.sortableColumns){
+                        $scope.$apply(function(){
+                            $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
+                        });
+                    }
+                }
+
+                element.on('click', sortHandler);
+
+                function isSorted(){
+                    return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;
+                }
+
+                $scope.$on('$destroy', function(){
+                    element.off('click', sortHandler);
+                });
+            }
+        };
+    }
+
+    angular
+        .module('mdDataTable')
+        .directive('mdtSortHandler', mdtSortHandlerDirective);
 }());
 (function(){
     'use strict';

@@ -3,9 +3,7 @@
     <div layout="row" layout-align="center">
         <table cellpadding="0" cellspacing="0" width="100%">
             <thead>
-            <tr class="theadTrRow"
-                mdt-animate-sort-icon-handler>
-
+            <tr class="theadTrRow" mdt-animate-sort-icon-handler>
                 <th class="checkboxCell"
                     style="text-align:left;"
                     ng-if="selectableRows"
@@ -13,6 +11,7 @@
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
                 <th class="column"
+                    ng-class="'columnSize'+$index"
                     ng-style="{'width': columnWidth[$index]}"
 
                     ng-repeat="headerRowData in tableDataStorageService.header track by $index"
@@ -25,10 +24,26 @@
                 </th>
             </tr>
             </thead>
+            <tbody style="visibility: hidden;">
+            <tr class="theadTrRow" mdt-animate-sort-icon-handler>
+
+                <td class="column"
+                    ng-class="'columnSize'+$index"
+                    ng-repeat="cellData in tableDataStorageService.maxRow.data track by $index"
+                    mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
+                    ng-switch="tableDataStorageService.header[$index].type">
+                    <span ng-switch-when="html"
+                          mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(tableDataStorageService.maxRow)"></span>
+                    <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
+                    <span ng-switch-default ng-bind="cellData"></span>
+                </td>
+
+            </tr>
+            </tbody>
         </table>
 
     </div>
-    <md-content flex layout="row" layout-align="center">
+    <md-content flex layout="row" layout-align="center" style="margin-top: -49px;">
         <md-content flex>
             <table cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeight()}">
                 <thead id="hiddenHead" style="visibility: hidden;">
@@ -64,6 +79,7 @@
                     </td>
 
                     <td class="column"
+                        ng-class="'columnSize'+$index"
                         ng-repeat="cellData in rowData.data track by $index"
                         mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
                         ng-switch="tableDataStorageService.header[$index].type">

@@ -163,7 +163,7 @@
                     id: "date",
                     columnName: "Date",
                     columnDefinition: "Date",
-                    alignRule: "right",
+                    alignRule: "left",
                     type: "date"
                 }
             ]

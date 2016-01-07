@@ -6,14 +6,29 @@
             outline: none;
         }
     }
+
+    $whiteColor: #ffffff;
+    $primaryColorPalette: #0D47A1;
+
+    #visible-header {
+        background-color: #fafafa;
+
+        border-bottom: 1px solid rgb(238, 238, 238);
+
+        th:hover {
+            //font-weight:600;
+            background-color: #EEEEEE;
+            color: darken($whiteColor, 75%);
+        }
+    }
+
     td, th {
         padding: 0;
         margin: 0;
     }
     font-size: 15px;
 
-    $whiteColor: #ffffff;
-    $primaryColorPalette: #0D47A1;
+
 
     /* 12sp Roboto Medium, 54% black */
     .noselect {
@@ -34,7 +49,7 @@
     th {
         font-size: 12px;
         font-weight: 500;
-        color: darken($whiteColor, 54%);
+        color: darken($whiteColor, 60%);
         cursor: pointer;
         white-space: nowrap;
         /* prevent ink ripple bleeding */

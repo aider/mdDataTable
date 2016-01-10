@@ -137,6 +137,7 @@
                 rippleEffect: '=',
                 paginatedRows: '=',
                 mdtModel: '=',
+                mdtSelectFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
@@ -167,7 +168,7 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         if (data) {
-                            $scope.tableDataStorageService.initModel(data);
+                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn);
                             unbindWatchMdtModel();
                         }
                     });
@@ -260,6 +261,7 @@
     function TableDataStorageFactory($log) {
 
         function TableDataStorageService() {
+            this.srcModel = {};
             this.storage = [];
             this.header = [];
             this.maxRow = {data: {}};
@@ -269,7 +271,8 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel) {
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+            this.selectCbFn = selectCbFn;
             var _header = this.header = mdtModel.headers;
             var _storage = this.storage;
             var _maxRow = this.maxRow.data;
@@ -399,9 +402,7 @@
                 };
             }
 
-            var res = _.sortBy(this.storage, sortFunction);
-
-            this.storage = res;
+            this.storage = _.sortBy(this.storage, sortFunction);
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {
@@ -624,6 +625,8 @@
                 this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
             this.tableDataStorageService.selectedRow = rowData;
+            this.tableDataStorageService.selectCbFn({rowData:rowData});
+
         };
 
         mdtPaginationHelper.prototype.getRows = function(){

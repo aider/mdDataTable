@@ -105,6 +105,7 @@
                 rippleEffect: '=',
                 paginatedRows: '=',
                 mdtModel: '=',
+                mdtSelectFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
@@ -135,7 +136,7 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         if (data) {
-                            $scope.tableDataStorageService.initModel(data);
+                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn);
                             unbindWatchMdtModel();
                         }
                     });

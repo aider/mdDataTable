@@ -77,16 +77,17 @@
                     <td class="checkboxCell" ng-show="selectableRows">
                         <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
                     </td>
-
+                    <!--ng-repeat="cellData in rowData.data track by $index"-->
                     <td class="column"
                         ng-class="'columnSize'+$index"
-                        ng-repeat="cellData in rowData.data track by $index"
+                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+
                         mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
                         ng-switch="tableDataStorageService.header[$index].type">
                     <span ng-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                        <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
-                        <span ng-switch-default ng-bind="cellData"></span>
+                        <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:"MMM dd, yyyy"}}</span>
+                        <span ng-switch-default ng-bind="rowData.data[headerRowData.id]"></span>
                     </td>
                 </tr>
                 <tr ng-show="mdtPaginationHelper.isLoading">

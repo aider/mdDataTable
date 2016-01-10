@@ -4,6 +4,7 @@
     function TableDataStorageFactory($log) {
 
         function TableDataStorageService() {
+            this.srcModel = {};
             this.storage = [];
             this.header = [];
             this.maxRow = {data: {}};
@@ -13,7 +14,8 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel) {
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+            this.selectCbFn = selectCbFn;
             var _header = this.header = mdtModel.headers;
             var _storage = this.storage;
             var _maxRow = this.maxRow.data;
@@ -143,9 +145,7 @@
                 };
             }
 
-            var res = _.sortBy(this.storage, sortFunction);
-
-            this.storage = res;
+            this.storage = _.sortBy(this.storage, sortFunction);
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {

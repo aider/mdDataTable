@@ -1,3 +1,9 @@
+#details-body {
+    h1.md-toolbar-tools {
+        color: #222;
+    }
+}
+
 .mdtTable {
     table {
         width: 100%;
@@ -11,7 +17,7 @@
     $primaryColorPalette: #0D47A1;
 
     #visible-header {
-        background-color: #fafafa;
+        background-color: #FAFAFA;
 
         border-bottom: 1px solid rgb(238, 238, 238);
 
@@ -27,8 +33,6 @@
         margin: 0;
     }
     font-size: 15px;
-
-
 
     /* 12sp Roboto Medium, 54% black */
     .noselect {

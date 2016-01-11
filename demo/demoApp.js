@@ -71,15 +71,15 @@
     //already defined in external resources
     angular.module('demo', ['ngMaterial',
         'developmentAreaApp',
-        'exampleApp',
-        'exampleApp2',
-        'exampleApp3',
-        'exampleApp4',
-        'exampleApp5',
-        'exampleApp6',
-        'exampleApp7',
-        'exampleApp8',
-        'exampleApp9'
+        //'exampleApp',
+        //'exampleApp2',
+        //'exampleApp3',
+        //'exampleApp4',
+        //'exampleApp5',
+        //'exampleApp6',
+        //'exampleApp7',
+        //'exampleApp8',
+        //'exampleApp9'
     ]);
 
     angular.module('demo').service('PageService', PageService);

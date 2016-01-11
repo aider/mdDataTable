@@ -51,6 +51,8 @@
                 this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
             this.tableDataStorageService.selectedRow = rowData;
+            this.tableDataStorageService.selectCbFn({rowData:rowData});
+
         };
 
         mdtPaginationHelper.prototype.getRows = function(){

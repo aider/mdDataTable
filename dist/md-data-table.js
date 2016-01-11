@@ -30,7 +30,7 @@
         .module('mdDataTable')
         .directive('mdtAlternateHeaders', mdtAlternateHeadersDirective);
 }());
-(function(){
+(function () {
     'use strict';
 
     /**
@@ -121,11 +121,12 @@
      *     </mdt-table>
      * </pre>
      */
-    function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory){
+    function mdtTableDirective(TableDataStorageFactory, mdtPaginationHelperFactory, mdtAjaxPaginationHelperFactory, $timeout, $window) {
         return {
             restrict: 'E',
             templateUrl: '/main/templates/mdtTable.html',
             transclude: true,
+            replace: true,
             scope: {
                 tableCard: '=',
                 selectableRows: '=',
@@ -136,23 +137,24 @@
                 rippleEffect: '=',
                 paginatedRows: '=',
                 mdtModel: '=',
+                mdtSelectFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
-                mdtRowPaginatorErrorMessage:"@"
+                mdtRowPaginatorErrorMessage: "@"
             },
-            controller: function($scope){
+            controller: function ($scope) {
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
                 initTableStorageServiceAndBindMethods();
 
-                function initTableStorageServiceAndBindMethods(){
+                function initTableStorageServiceAndBindMethods() {
                     $scope.tableDataStorageService = TableDataStorageFactory.getInstance();
 
-                    if(!$scope.mdtRowPaginator){
+                    if (!$scope.mdtRowPaginator) {
                         $scope.mdtPaginationHelper = mdtPaginationHelperFactory
                             .getInstance($scope.tableDataStorageService, $scope.paginatedRows, $scope.mdtRow);
-                    }else{
+                    } else {
                         $scope.mdtPaginationHelper = mdtAjaxPaginationHelperFactory.getInstance({
                             tableDataStorageService: $scope.tableDataStorageService,
                             paginationSetting: $scope.paginatedRows,
@@ -164,27 +166,35 @@
 
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
 
-                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function(data) {
-                        if(data) {
-                            $scope.tableDataStorageService.initModel(data);
+                    var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
+                        if (data) {
+                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn);
                             unbindWatchMdtModel();
                         }
                     });
                 }
 
 
-                function addHeaderCell(ops){
+                function addHeaderCell(ops) {
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
             },
-            link: function($scope, element, attrs, ctrl, transclude){
+            link: function ($scope, element, attrs, ctrl, transclude) {
                 injectContentIntoTemplate();
 
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
-                if(!_.isEmpty($scope.mdtRow)) {
+                $scope.hiddenHeadHeight = function () {
+                    return -$('#hiddenHead', element).height();
+                };
+                $scope.hiddenBodyHeight = function () {
+                    return -$('#hiddenBody', element).height();
+                };
+
+
+                if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
                     if (angular.isUndefined(attrs.mdtRowPaginator)) {
                         $scope.$watch('mdtRow', function (mdtRow) {
@@ -194,19 +204,19 @@
                         }, true);
 
 
-                    }else{
+                    } else {
                         //if it's used for 'Ajax pagination'
                     }
                 }
 
-                function addRawDataToStorage(data){
+                function addRawDataToStorage(data) {
                     var rowId;
                     var columnValues = [];
-                    _.each(data, function(row){
+                    _.each(data, function (row) {
                         rowId = _.get(row, $scope.mdtRow['table-row-id-key']);
                         columnValues = [];
 
-                        _.each($scope.mdtRow['column-keys'], function(columnKey){
+                        _.each($scope.mdtRow['column-keys'], function (columnKey) {
                             columnValues.push(_.get(row, columnKey));
                         });
 
@@ -214,15 +224,15 @@
                     });
                 }
 
-                function isPaginationEnabled(){
-                    if($scope.paginatedRows === true || ($scope.paginatedRows && $scope.paginatedRows.hasOwnProperty('isEnabled') && $scope.paginatedRows.isEnabled === true)){
+                function isPaginationEnabled() {
+                    if ($scope.paginatedRows === true || ($scope.paginatedRows && $scope.paginatedRows.hasOwnProperty('isEnabled') && $scope.paginatedRows.isEnabled === true)) {
                         return true;
                     }
 
                     return false;
                 }
 
-                function injectContentIntoTemplate(){
+                function injectContentIntoTemplate() {
                     transclude(function (clone) {
                         var headings = [];
                         var body = [];
@@ -248,43 +258,50 @@
         .module('mdDataTable')
         .directive('mdtTable', mdtTableDirective);
 }());
-(function(){
-    'use strict';
-
-    function ColumnAlignmentHelper(ColumnOptionProvider){
-        var service = this;
-        service.getColumnAlignClass = getColumnAlignClass;
-
-        function getColumnAlignClass(alignRule) {
-            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
-                return 'rightAlignedColumn';
-            } else {
-                return 'leftAlignedColumn';
-            }
-        }
-    }
-
-    angular
-        .module('mdDataTable')
-        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
-}());
 (function () {
     'use strict';
 
     function TableDataStorageFactory($log) {
 
         function TableDataStorageService() {
+            this.srcModel = {};
             this.storage = [];
             this.header = [];
+            this.maxRow = {data: {}};
+            this.maxWidth = {};
 
             this.sortByColumnLastIndex = null;
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel) {
-            this.header = mdtModel.headers;
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+            this.selectCbFn = selectCbFn;
+            var _header = this.header = mdtModel.headers;
             var _storage = this.storage;
+            var _maxRow = this.maxRow.data;
+            var _maxWidth = this.maxWidth;
+
+            var canvas = document.createElement("canvas");
+            var context = canvas.getContext("2d");
+            //context.font = font;
+
             mdtModel.data.forEach(function (item) {
+
+                _header.forEach(function (header) {
+                    var _value = item[header.id];
+                    var metrics = context.measureText(_value);
+                    var _width = metrics.width;
+
+                    if (!_maxRow[header.id]) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    } else if (_maxWidth[header.id] < _width) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    }
+                });
+
+
                 var id = item.id;
                 _storage.push({
                     rowId: item.id,
@@ -299,12 +316,10 @@
             });
         };
         TableDataStorageService.prototype.addHeaderCellData = function (ops) {
-            debugger;
             this.header.push(ops);
         };
 
         TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
-            debugger;
             if (!(rowArray instanceof Array)) {
                 $log.error('`rowArray` parameter should be array');
                 return;
@@ -390,9 +405,7 @@
                 };
             }
 
-            var res = _.sortBy(this.storage, sortFunction);
-
-            this.storage = res;
+            this.storage = _.sortBy(this.storage, sortFunction);
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {
@@ -615,6 +628,8 @@
                 this.tableDataStorageService.selectedRow.optionList.selected = false;
             }
             this.tableDataStorageService.selectedRow = rowData;
+            this.tableDataStorageService.selectCbFn({rowData:rowData});
+
         };
 
         mdtPaginationHelper.prototype.getRows = function(){
@@ -652,6 +667,26 @@
     angular
         .module('mdDataTable')
         .service('mdtPaginationHelperFactory', mdtPaginationHelperFactory);
+}());
+(function(){
+    'use strict';
+
+    function ColumnAlignmentHelper(ColumnOptionProvider){
+        var service = this;
+        service.getColumnAlignClass = getColumnAlignClass;
+
+        function getColumnAlignClass(alignRule) {
+            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
+                return 'rightAlignedColumn';
+            } else {
+                return 'leftAlignedColumn';
+            }
+        }
+    }
+
+    angular
+        .module('mdDataTable')
+        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
 }());
 (function(){
     'use strict';

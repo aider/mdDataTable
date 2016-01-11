@@ -1,9 +1,9 @@
-(function(){
+(function () {
     'use strict';
 
     angular.module('developmentAreaApp', ['ngMaterial', 'mdDataTable']);
-    angular.module('developmentAreaApp').controller('DevelopmentAreaController', function($scope){
-        $scope.nutritionList = [
+    angular.module('developmentAreaApp').controller('DevelopmentAreaController', function ($scope, $sce, $compile) {
+        $scope.nutritionListTest = [
             {
                 id: 601,
                 name: 'Frozen joghurt',
@@ -115,5 +115,58 @@
                 iron: '6%'
             }
         ];
+
+        $scope.nutrition = [];
+        var idcnt = 0;
+        for (var k = 0; k < 10; k++) {
+            $scope.nutritionListTest.forEach(function (item) {
+                idcnt++;
+                item.id = idcnt;
+                delete item.carbs;
+                delete item.protein;
+                delete item.sodium;
+                delete item.calcium;
+                delete item.iron;
+                item.date = Date.now() - idcnt * 2 * 60 * 60 * 24 * 1000;
+                $scope.nutrition.push(item);
+            });
+        }
+
+
+        $scope.model = {
+            data: $scope.nutrition,
+            headers: [
+                {
+                    id: "name",
+                    columnName: "Dessert (100g serving)",
+                    columnDefinition: "Dessert (100g serving)",
+                    alignRule: "left",
+                    content: function (rowData) {
+                        //return "<md-icon class='material-icons'>folder</md-icon><span class=\"principal-title\">" + rowData.data.name + "</span>";
+                        return "<span class=\"principal-title\">" + rowData.data.name + "</span>";
+                    },
+                    type: 'html'
+                },
+                {
+                    id: "calories",
+                    columnName: "Calories",
+                    columnDefinition: "Calories",
+                    alignRule: "left"
+                },
+                {
+                    id: "fat",
+                    columnName: "Fat (g)",
+                    columnDefinition: "Fat (g)",
+                    alignRule: "left"
+                },
+                {
+                    id: "date",
+                    columnName: "Date",
+                    columnDefinition: "Date",
+                    alignRule: "left",
+                    type: "date"
+                }
+            ]
+        };
     });
 }());

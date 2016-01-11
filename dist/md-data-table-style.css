@@ -1,3 +1,7 @@
+#details-body h1.md-toolbar-tools {
+  color: #222;
+}
+
 .mdtTable {
   font-size: 15px;
   /* 12sp Roboto Medium, 54% black */
@@ -16,6 +20,14 @@
 }
 .mdtTable table:focus {
   outline: none;
+}
+.mdtTable #visible-header {
+  background-color: #FAFAFA;
+  border-bottom: 1px solid #eeeeee;
+}
+.mdtTable #visible-header th:hover {
+  background-color: #EEEEEE;
+  color: #404040;
 }
 .mdtTable td, .mdtTable th {
   padding: 0;
@@ -38,7 +50,7 @@
 .mdtTable th {
   font-size: 12px;
   font-weight: 500;
-  color: #757575;
+  color: #666666;
   cursor: pointer;
   white-space: nowrap;
   /* prevent ink ripple bleeding */

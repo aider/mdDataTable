@@ -4,17 +4,44 @@
     function TableDataStorageFactory($log) {
 
         function TableDataStorageService() {
+            this.srcModel = {};
             this.storage = [];
             this.header = [];
+            this.maxRow = {data: {}};
+            this.maxWidth = {};
 
             this.sortByColumnLastIndex = null;
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel) {
-            this.header = mdtModel.headers;
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+            this.selectCbFn = selectCbFn;
+            var _header = this.header = mdtModel.headers;
             var _storage = this.storage;
+            var _maxRow = this.maxRow.data;
+            var _maxWidth = this.maxWidth;
+
+            var canvas = document.createElement("canvas");
+            var context = canvas.getContext("2d");
+            //context.font = font;
+
             mdtModel.data.forEach(function (item) {
+
+                _header.forEach(function (header) {
+                    var _value = item[header.id];
+                    var metrics = context.measureText(_value);
+                    var _width = metrics.width;
+
+                    if (!_maxRow[header.id]) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    } else if (_maxWidth[header.id] < _width) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    }
+                });
+
+
                 var id = item.id;
                 _storage.push({
                     rowId: item.id,
@@ -29,12 +56,10 @@
             });
         };
         TableDataStorageService.prototype.addHeaderCellData = function (ops) {
-            debugger;
             this.header.push(ops);
         };
 
         TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
-            debugger;
             if (!(rowArray instanceof Array)) {
                 $log.error('`rowArray` parameter should be array');
                 return;
@@ -120,9 +145,7 @@
                 };
             }
 
-            var res = _.sortBy(this.storage, sortFunction);
-
-            this.storage = res;
+            this.storage = _.sortBy(this.storage, sortFunction);
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {

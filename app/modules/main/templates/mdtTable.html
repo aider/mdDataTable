@@ -24,7 +24,7 @@
                 </th>
             </tr>
             </thead>
-            <tbody style="visibility: hidden;">
+            <tbody id="hiddenBody" style="visibility: hidden;">
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
 
                 <td class="column"
@@ -43,9 +43,9 @@
         </table>
 
     </div>
-    <md-content flex layout="row" layout-align="center" style="margin-top: -49px;">
+    <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}">
         <md-content flex>
-            <table cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeight()}">
+            <table cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeadHeight()}">
                 <thead id="hiddenHead" style="visibility: hidden;">
                 <tr class="theadTrRow"
                     mdt-animate-sort-icon-handler>

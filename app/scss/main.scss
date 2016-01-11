@@ -212,6 +212,10 @@
     }
 
     tr td {
+        //max-width: 320px;
+        //overflow: hidden;
+        //text-overflow: ellipsis;
+        //white-space: nowrap;
         border-bottom: solid 1px #DDDDDD;
     }
 

@@ -154,8 +154,11 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
-                $scope.hiddenHeight = function () {
+                $scope.hiddenHeadHeight = function () {
                     return -$('#hiddenHead', element).height();
+                };
+                $scope.hiddenBodyHeight = function () {
+                    return -$('#hiddenBody', element).height();
                 };
 
 

@@ -10,15 +10,14 @@
                     mdt-select-all-rows-handler>
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
-                <th class="column"
-                    ng-class="'columnSize'+$index"
-                    ng-style="{'width': columnWidth[$index]}"
-
-                    ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-
-                    mdt-sort-handler
-                    md-ink-ripple="{{rippleEffect}}">
+                <th
+                        class="column"
+                        ng-class="'columnSize'+$index"
+                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+                        mdt-add-align-class="headerRowData.alignRule"
+                        ng-style="{'width':headerRowData.maxWidth}"
+                        mdt-sort-handler
+                        md-ink-ripple="{{rippleEffect}}">
 
                     <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
                 </th>
@@ -27,11 +26,12 @@
             <tbody id="hiddenBody" style="visibility: hidden;">
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
 
-                <td class="column"
-                    ng-class="'columnSize'+$index"
-                    ng-repeat="cellData in tableDataStorageService.maxRow.data track by $index"
-                    mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                    ng-switch="tableDataStorageService.header[$index].type">
+                <td
+                        class="column"
+                        ng-class="'columnSize'+$index"
+                        ng-repeat="cellData in tableDataStorageService.maxRow.data track by $index"
+                        mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
+                        ng-switch="tableDataStorageService.header[$index].type">
                     <span ng-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(tableDataStorageService.maxRow)"></span>
                     <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
@@ -45,7 +45,7 @@
     </div>
     <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}">
         <md-content flex>
-            <table cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeadHeight()}">
+            <table id="data-table" cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeadHeight()}">
                 <thead id="hiddenHead" style="visibility: hidden;">
                 <tr class="theadTrRow"
                     mdt-animate-sort-icon-handler>
@@ -57,12 +57,14 @@
                         <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                     </th>
 
-                    <th class="column"
-                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-                        mdt-add-align-class="headerRowData.alignRule"
-                        ng-class="'columnSize'+$index"
-                        mdt-sort-handler
-                        md-ink-ripple="{{rippleEffect}}">
+                    <th
+                            ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+                            mdt-add-align-class="headerRowData.alignRule"
+                            ng-style="{'width':headerRowData.maxWidth}"
+                            class="column"
+                            ng-class="'columnSize'+$index"
+                            mdt-sort-handler
+                            md-ink-ripple="{{rippleEffect}}">
 
                         <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
                     </th>
@@ -77,13 +79,13 @@
                     <td class="checkboxCell" ng-show="selectableRows">
                         <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
                     </td>
-                    <!--ng-repeat="cellData in rowData.data track by $index"-->
-                    <td class="column"
-                        ng-class="'columnSize'+$index"
-                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-
-                        mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                        ng-switch="tableDataStorageService.header[$index].type">
+                    <td
+                            class="column"
+                            ng-class="'columnSize'+$index"
+                            ng-repeat="headerRowData in tableDataStorageService.header track by $index"
+                            ng-style="{'width':headerRowData.maxWidth}"
+                            mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
+                            ng-switch="tableDataStorageService.header[$index].type">
                     <span ng-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
                         <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:"MMM dd, yyyy"}}</span>

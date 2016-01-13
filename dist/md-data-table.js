@@ -186,9 +186,25 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
+
                 $scope.hiddenHeadHeight = function () {
-                    return -$('#hiddenHead', element).height();
+                    return -$('#hiddenHead', element).height() || 0 ;
                 };
+
+                function watiForHeight() {
+                    var data = $scope.hiddenHeadHeight();
+
+                    if(!data) {
+                        $timeout(function() {
+                            watiForHeight();
+                        });
+                    } else {
+                        $('#data-table', element).css('height', data);
+                    }
+
+                }
+                watiForHeight();
+
                 $scope.hiddenBodyHeight = function () {
                     return -$('#hiddenBody', element).height();
                 };

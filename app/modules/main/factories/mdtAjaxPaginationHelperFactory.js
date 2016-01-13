@@ -116,6 +116,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .service('mdtAjaxPaginationHelperFactory', mdtAjaxPaginationHelperFactory);
 }());

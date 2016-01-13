@@ -191,6 +191,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .factory('TableDataStorageFactory', TableDataStorageFactory);
 }());

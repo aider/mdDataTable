@@ -14,6 +14,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtGeneratedHeaderCellContent', mdtGeneratedHeaderCellContentDirective);
 }());

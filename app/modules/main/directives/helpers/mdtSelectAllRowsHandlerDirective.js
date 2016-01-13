@@ -16,6 +16,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtSelectAllRowsHandler', mdtSelectAllRowsHandlerDirective);
 }());

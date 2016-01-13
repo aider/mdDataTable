@@ -14,7 +14,7 @@ xdescribe('mdtTableDirective', function(){
     var DIRECTIVE_WITH_COMPILED_CONTENT = 'DIRECTIVE_WITH_COMPILED_CONTENT';
 
     beforeEach(module('mdtTemplates'));
-    beforeEach(module('mdDataTable'));
+    beforeEach(module('material.components.table'));
 
     beforeEach(inject(function($injector){
         $compile = $injector.get('$compile');

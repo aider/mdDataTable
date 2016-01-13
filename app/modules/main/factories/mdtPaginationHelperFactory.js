@@ -88,6 +88,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .service('mdtPaginationHelperFactory', mdtPaginationHelperFactory);
 }());

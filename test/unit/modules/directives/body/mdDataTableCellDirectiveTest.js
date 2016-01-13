@@ -8,7 +8,7 @@ xdescribe('mdtColumnDirective', function(){
     var DIRECTIVE_DEFAULT_CASE = 'DIRECTIVE_DEFAULT_CASE';
 
     beforeEach(module('mdtTemplates'));
-    beforeEach(module('mdDataTable'));
+    beforeEach(module('material.components.table'));
 
     beforeEach(inject(function($injector){
         $compile = $injector.get('$compile');

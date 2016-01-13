@@ -1,7 +1,6 @@
 (function () {
     'use strict';
-
-    angular.module('developmentAreaApp', ['ngMaterial', 'mdDataTable']);
+    angular.module('developmentAreaApp', ['ngMaterial', 'material.components.table']);
     angular.module('developmentAreaApp').controller('DevelopmentAreaController', function ($scope, $sce, $compile) {
         $scope.nutritionListTest = [
             {

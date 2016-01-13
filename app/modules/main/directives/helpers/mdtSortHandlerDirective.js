@@ -34,6 +34,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtSortHandler', mdtSortHandlerDirective);
 }());

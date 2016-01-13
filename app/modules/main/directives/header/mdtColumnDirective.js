@@ -66,6 +66,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtColumn', mdtColumnDirective);
 }());

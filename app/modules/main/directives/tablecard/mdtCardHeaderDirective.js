@@ -20,6 +20,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtCardHeader', mdtCardHeaderDirective);
 }());

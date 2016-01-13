@@ -22,6 +22,6 @@
     }
 
     angular
-        .module('mdDataTable')
+        .module('material.components.table')
         .directive('mdtAddHtmlContentToCell', mdtAddHtmlContentToCellDirective);
 }());

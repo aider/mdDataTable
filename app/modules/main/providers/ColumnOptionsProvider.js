@@ -8,6 +8,6 @@
         }
     };
 
-    angular.module('mdDataTable')
+    angular.module('material.components.table')
         .value('ColumnOptionProvider', ColumnOptionProvider);
 })();

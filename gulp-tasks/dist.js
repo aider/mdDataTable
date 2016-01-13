@@ -6,14 +6,10 @@ var gulp   = require('gulp'),
     ngAnnotate  = require('gulp-ng-annotate'),
     templateCache = require('gulp-angular-templatecache');
 
-var jsAssets = ['app/modules/**/*.js'];
+var jsAssets = ['app/modules/**/*.js', 'dist/md-data-table-templates.js'];
 var htmlFiles = ['app/modules/**/*.html'];
 
 gulp.task('dist', function() {
-    var jsStream = gulp.src(jsAssets)
-        .pipe(concat('md-data-table.js'))
-        .pipe(ngAnnotate({ remove: true, add: false, single_quotes: true }))
-        .pipe(gulp.dest('dist'));
 
     var cssStream = gulp
         .src('app/scss/main.scss')
@@ -24,6 +20,11 @@ gulp.task('dist', function() {
     var templatesStream = gulp
         .src(htmlFiles)
         .pipe(templateCache('md-data-table-templates.js', { root:'/', module:'mdtTemplates', standalone:true }))
+        .pipe(gulp.dest('dist'));
+
+    var jsStream = gulp.src(jsAssets)
+        .pipe(concat('md-data-table.js'))
+        .pipe(ngAnnotate({ remove: true, add: false, single_quotes: true }))
         .pipe(gulp.dest('dist'));
 
     return eventStream.merge([jsStream, templatesStream, cssStream]);

@@ -11,7 +11,7 @@ xdescribe('mdtColumnDirective', function(){
     var DIRECTIVE_MULTI_COLUMN = 'DIRECTIVE_MULTI_COLUMN';
 
     beforeEach(module('mdtTemplates'));
-    beforeEach(module('mdDataTable'));
+    beforeEach(module('material.components.table'));
 
     beforeEach(inject(function($injector){
         $compile = $injector.get('$compile');

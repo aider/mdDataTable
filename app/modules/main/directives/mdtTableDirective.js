@@ -154,7 +154,22 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
+/*
+                function watchAnalytics() {
+                    $timeout(function() {
+                        var watchers = ($scope.$$watchers) ? $scope.$$watchers.length : 0;
+                        var child = $scope.$$childHead;
+                        while (child) {
+                            watchers += (child.$$watchers) ? child.$$watchers.length : 0;
+                            child = child.$$nextSibling;
+                        }
+                        console.log('watchers: '+ watchers);
+                        watchAnalytics();
+                    },1000);
 
+                }
+                watchAnalytics();
+*/
                 $scope.hiddenHeadHeight = function () {
                     return -$('#hiddenHead', element).height() || 0 ;
                 };

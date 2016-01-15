@@ -4,18 +4,19 @@
         <table cellpadding="0" cellspacing="0" width="100%">
             <thead id="visible-header">
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
-                <th class="checkboxCell"
+                <th bindonce class="checkboxCell"
                     style="text-align:left;"
                     ng-if="selectableRows"
                     mdt-select-all-rows-handler>
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
                 <th
+                        bindonce
                         class="column"
-                        ng-class="'columnSize'+$index"
+                        bo-class="'columnSize'+$index"
                         ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                         mdt-add-align-class="headerRowData.alignRule"
-                        ng-style="{'width':headerRowData.maxWidth}"
+                        bo-style="{'width':headerRowData.maxWidth}"
                         mdt-sort-handler
                         md-ink-ripple="{{rippleEffect}}">
 
@@ -27,15 +28,16 @@
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
 
                 <td
+                        bindonce
                         class="column"
-                        ng-class="'columnSize'+$index"
+                        bo-class="'columnSize'+$index"
                         ng-repeat="cellData in tableDataStorageService.maxRow.data track by $index"
                         mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                        ng-switch="tableDataStorageService.header[$index].type">
-                    <span ng-switch-when="html"
+                        bo-switch="tableDataStorageService.header[$index].type">
+                    <span bo-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(tableDataStorageService.maxRow)"></span>
-                    <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
-                    <span ng-switch-default ng-bind="cellData"></span>
+                    <span bo-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
+                    <span bo-switch-default bo-bind="cellData"></span>
                 </td>
 
             </tr>
@@ -45,7 +47,8 @@
     </div>
     <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}">
         <md-content flex>
-            <table id="data-table" cellpadding="0" cellspacing="0" layout-fill ng-style="{'margin-top': hiddenHeadHeight()}">
+            <table id="data-table" cellpadding="0" cellspacing="0" layout-fill
+                   ng-style="{'margin-top': hiddenHeadHeight()}">
                 <thead id="hiddenHead" style="visibility: hidden;">
                 <tr class="theadTrRow"
                     mdt-animate-sort-icon-handler>
@@ -58,11 +61,12 @@
                     </th>
 
                     <th
+                            bindonce
                             ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                             mdt-add-align-class="headerRowData.alignRule"
-                            ng-style="{'width':headerRowData.maxWidth}"
+                            bo-style="{'width':headerRowData.maxWidth}"
                             class="column"
-                            ng-class="'columnSize'+$index"
+                            bo-class="'columnSize'+$index"
                             mdt-sort-handler
                             md-ink-ripple="{{rippleEffect}}">
 
@@ -71,35 +75,36 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
-                    ng-class="{'selectedRow': rowData.optionList.selected}"
+                <tr bindonce ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
+                    bo-class="{'selectedRow': rowData.optionList.selected}"
                     ng-click="mdtPaginationHelper.selectRow(rowData)"
-                    ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
+                    bo-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
-                    <td class="checkboxCell" ng-show="selectableRows">
+                    <td bindonce class="checkboxCell" bo-show="selectableRows">
                         <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
                     </td>
                     <td
+                            bindonce
                             class="column"
-                            ng-class="'columnSize'+$index"
+                            bo-class="'columnSize'+$index"
                             ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-                            ng-style="{'width':headerRowData.maxWidth}"
+                            bo-style="{'width':headerRowData.maxWidth}"
                             mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                            ng-switch="tableDataStorageService.header[$index].type">
-                    <span ng-switch-when="html"
+                            bo-switch="tableDataStorageService.header[$index].type">
+                    <span bo-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                        <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:"MMM dd, yyyy"}}</span>
-                        <span ng-switch-default ng-bind="rowData.data[headerRowData.id]"></span>
+                        <span bo-switch-when="date"
+                              bo-bind="rowData.data[headerRowData.id] | date:'MMM dd, yyyy'"></span>
+                        <span bo-switch-default bo-bind="rowData.data[headerRowData.id]"></span>
                     </td>
                 </tr>
-                <tr ng-show="mdtPaginationHelper.isLoading">
+                <tr bindonce bo-show="mdtPaginationHelper.isLoading">
                     <td colspan="999">
                         <md-progress-linear md-mode="indeterminate"></md-progress-linear>
                     </td>
                 </tr>
-                <tr ng-show="mdtPaginationHelper.isLoadError">
-                    <td colspan="999">
-                        {{mdtPaginationHelper.mdtRowPaginatorErrorMessage}}
+                <tr bindonce bo-show="mdtPaginationHelper.isLoadError">
+                    <td colspan="999" bo-bind="mdtPaginationHelper.mdtRowPaginatorErrorMessage">
                     </td>
                 </tr>
                 </tbody>

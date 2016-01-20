@@ -5,7 +5,7 @@
             <thead id="visible-header">
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
                 <th bindonce class="checkboxCell"
-                    style="text-align:left;"
+                    style=" text-align:left;"
                     ng-if="selectableRows"
                     mdt-select-all-rows-handler>
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
@@ -76,7 +76,7 @@
                 </thead>
                 <tbody>
                 <tr bindonce ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
-                    bo-class="{'selectedRow': rowData.optionList.selected}"
+                    ng-class="{'selectedRow': rowData.optionList.selected}"
                     ng-click="mdtPaginationHelper.selectRow(rowData)"
                     bo-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
@@ -93,12 +93,11 @@
                             bo-switch="tableDataStorageService.header[$index].type">
                     <span bo-switch-when="html"
                           mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                        <span bo-switch-when="date"
-                              bo-bind="rowData.data[headerRowData.id] | date:'MMM dd, yyyy'"></span>
-                        <span bo-switch-default bo-bind="rowData.data[headerRowData.id]"></span>
+                        <span bo-switch-when="date">{{rowData.data[headerRowData.id] | date:'MMM dd, yyyy'}}</span>
+                        <span bo-switch-default>{{rowData.data[headerRowData.id]}}</span>
                     </td>
                 </tr>
-                <tr bindonce bo-show="mdtPaginationHelper.isLoading">
+                <tr bindonce ng-show="mdtPaginationHelper.isLoading">
                     <td colspan="999">
                         <md-progress-linear md-mode="indeterminate"></md-progress-linear>
                     </td>

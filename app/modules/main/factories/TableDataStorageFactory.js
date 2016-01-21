@@ -15,6 +15,10 @@
         }
 
         TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+            this.storage = [];
+            this.maxRow = {data: {}};
+            this.maxWidth = {};
+
             this.selectCbFn = selectCbFn;
             var _header = this.header = mdtModel.headers;
             var _storage = this.storage;

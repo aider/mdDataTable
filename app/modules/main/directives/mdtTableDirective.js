@@ -137,6 +137,13 @@
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         if (data) {
                             $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn);
+
+                            $scope.$watchCollection('mdtModel.data', function (data) {
+                                if (data) {
+                                    $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn);
+                                }
+                            });
+
                             unbindWatchMdtModel();
                         }
                     });

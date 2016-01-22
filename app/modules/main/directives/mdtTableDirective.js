@@ -106,7 +106,7 @@
                 paginatedRows: '=',
                 mdtModel: '=',
                 mdtSelectFn: '&',
-                mdtDblclickCbFn: '&',
+                mdtDblclickFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
@@ -137,7 +137,7 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         if (data) {
-                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblClickCbFn);
+                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblClickFn);
 
                             $scope.$watchCollection('mdtModel.data', function (data) {
                                 if (data) {

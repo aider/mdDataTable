@@ -136,17 +136,17 @@
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
-                        if (data) {
-                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblclickFn);
+                        //if (data) {
+                            //$scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblclickFn);
 
                             $scope.$watchCollection('mdtModel.data', function (data) {
                                 if (data) {
-                                    $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn);
+                                    $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn);
                                 }
                             });
 
                             unbindWatchMdtModel();
-                        }
+                        //}
                     });
                 }
 

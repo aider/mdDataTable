@@ -106,6 +106,7 @@
                 paginatedRows: '=',
                 mdtModel: '=',
                 mdtSelectFn: '&',
+                mdtDblclickCbFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
@@ -136,7 +137,7 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         if (data) {
-                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn);
+                            $scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblClickCbFn);
 
                             $scope.$watchCollection('mdtModel.data', function (data) {
                                 if (data) {
@@ -161,6 +162,7 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
+
 /*
                 function watchAnalytics() {
                     $timeout(function() {
@@ -181,6 +183,11 @@
                     return -$('#hiddenHead', element).height() || 0 ;
                 };
 
+
+                $scope.hiddenBodyHeight = function () {
+                    return -$('#hiddenBody', element).height();
+                };
+
                 function watiForHeight() {
                     var data = $scope.hiddenHeadHeight();
 
@@ -189,16 +196,11 @@
                             watiForHeight();
                         });
                     } else {
-                        $('#data-table', element).css('height', data);
+                        $('#data-table', element).css('margin-top', data);
                     }
 
                 }
                 watiForHeight();
-
-                $scope.hiddenBodyHeight = function () {
-                    return -$('#hiddenBody', element).height();
-                };
-
 
                 if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter

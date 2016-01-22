@@ -14,12 +14,13 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn) {
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn, dblClickCbFn) {
             this.storage = [];
             this.maxRow = {data: {}};
             this.maxWidth = {};
 
             this.selectCbFn = selectCbFn;
+            this.dblClickCbFn = dblClickCbFn;
             var _header = this.header = mdtModel.headers;
             var _storage = this.storage;
             var _maxRow = this.maxRow.data;

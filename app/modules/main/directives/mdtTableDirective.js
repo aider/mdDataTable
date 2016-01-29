@@ -189,14 +189,14 @@
                 };
 
                 function watiForHeight() {
-                    var data = $scope.hiddenHeadHeight();
+                    var height = $scope.hiddenHeadHeight();
 
-                    if(!data) {
+                    if(!height) {
                         $timeout(function() {
                             watiForHeight();
                         });
                     } else {
-                        $('#data-table', element).css('margin-top', data);
+                        $('#data-table', element).css('margin-top', height);
                     }
 
                 }

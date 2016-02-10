@@ -1,3 +1,5 @@
+$checkBoxWidth: 18px;
+
 #details-body h1.md-toolbar-tools {
   color: #222;
 }
@@ -14,94 +16,93 @@
   /* border separation color */
   /* INTERACTION */
   /* default icon color */
-}
-.mdtTable table {
-  width: 100%;
-}
-.mdtTable table:focus {
-  outline: none;
-}
-.mdtTable table tr {
-  cursor: default;
-}
-.mdtTable table tr:focus {
-  outline: none;
-}
-.mdtTable table td, .mdtTable table th {
-  padding: 0;
-  margin: 0;
-}
-.mdtTable table th {
-  font-size: 12px;
-  font-weight: 500;
-  color: #666666;
-  cursor: pointer;
-  white-space: nowrap;
-  position: relative;
-}
-.mdtTable table th[disabled] {
-  cursor: auto;
-}
-.mdtTable table th:focus {
-  outline: none;
-}
-.mdtTable table th:hover .hoverSortIcons ng-md-icon {
-  visibility: visible;
-}
-.mdtTable table th .hoverSortIcons ng-md-icon {
-  visibility: hidden;
-  width: 16px;
-  height: 16px;
-  fill: #b3b3b3;
-}
-.mdtTable table th .hoverSortIcons ng-md-icon svg {
-  -webkit-transform: rotate(90deg);
-  transform: rotate(90deg);
-}
-.mdtTable table .column-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-.mdtTable table .column-container .column-header-body {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-height: 25px;
-  overflow: auto;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mdtTable table .column-container .column-body {
-  position: absolute;
-  top: 11px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-height: 25px;
-  overflow: auto;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mdtTable #visible-header {
-  background-color: #FAFAFA;
-  border-bottom: 1px solid #eeeeee;
-}
-.mdtTable #visible-header th:hover {
-  background-color: #EEEEEE;
-  color: #404040;
-}
-.mdtTable .noselect, .mdtTable table tr {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  table {
+    width: 100%;
+    &:focus {
+      outline: none;
+    }
+    tr {
+      @extend .noselect;
+      cursor: default;
+      &:focus {
+        outline: none;
+      }
+    }
+    td, th {
+      padding: 0;
+      margin: 0;
+    }
+
+    th {
+      font-size: 12px;
+      font-weight: 500;
+      color: #666666;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+
+      &[disabled] {
+        cursor: auto;
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &:hover .hoverSortIcons ng-md-icon {
+        visibility: visible;
+      }
+
+      .hoverSortIcons ng-md-icon {
+        visibility: hidden;
+        width: 16px;
+        height: 16px;
+        fill: #b3b3b3;
+      }
+      .hoverSortIcons ng-md-icon svg {
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+      }
+    }
+
+    .column-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+
+      .column-body {
+        position: absolute;
+        top: 11px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 25px;
+        overflow: auto;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  #visible-header {
+    background-color: #FAFAFA;
+    border-bottom: 1px solid #eeeeee;
+    th:hover {
+      background-color: #EEEEEE;
+      color: #404040;
+    }
+  }
+
+  .noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
 }
 
 .mdtTable th .sortedColumn {
@@ -173,7 +174,7 @@
 }
 
 .mdtTable .checkboxCell {
-  width: 18px;
+  width: $checkBoxWidth;
   /*the next cell should not have just 24px padding */
 }
 

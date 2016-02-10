@@ -11,16 +11,19 @@
                     <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
                 </th>
                 <th
-
+                        style="position:relative"
                         class="column"
                         ng-class="'columnSize'+$index"
                         ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                         mdt-add-align-class="headerRowData.alignRule"
-                        ng-style="{'width':headerRowData.maxWidth}"
+                        ng-style="headerRowData.style"
                         mdt-sort-handler
                         md-ink-ripple="{{rippleEffect}}">
-
-                    <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+                    <div class="column-container">
+                        <div class="column-header-body">
+                            <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+                        </div>
+                    </div>
                 </th>
             </tr>
             </thead>
@@ -28,18 +31,20 @@
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
 
                 <td
-
+                        style="position:relative"
                         class="column"
                         ng-class="'columnSize'+$index"
                         ng-repeat="cellData in tableDataStorageService.maxRow.data track by $index"
                         mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
                         ng-switch="tableDataStorageService.header[$index].type">
-                    <span ng-switch-when="html"
-                          mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(tableDataStorageService.maxRow)"></span>
-                    <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
-                    <span ng-switch-default ng-bind="cellData"></span>
+                    <div class="column-container">
+                        <div class="column-body">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(tableDataStorageService.maxRow)"></span>
+                            <span ng-switch-when="date">{{cellData | date:"MMM dd, yyyy"}}</span>
+                            <span ng-switch-default ng-bind="cellData"></span>
+                        </div>
+                    </div>
                 </td>
-
             </tr>
             </tbody>
         </table>
@@ -60,15 +65,20 @@
                 </th>
 
                 <th
+                        style="position: relative"
                         ng-repeat="headerRowData in tableDataStorageService.header track by $index"
                         mdt-add-align-class="headerRowData.alignRule"
-                        ng-style="{'width':headerRowData.maxWidth}"
+                        ng-style="headerRowData.style"
                         class="column"
                         ng-class="'columnSize'+$index"
                         mdt-sort-handler
                         md-ink-ripple="{{rippleEffect}}">
 
-                    <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+                    <div class="column-container">
+                        <div class="column-header-body">
+                            <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+                        </div>
+                    </div>
                 </th>
             </tr>
             </thead>
@@ -77,23 +87,29 @@
                 ng-class="{'selectedRow': rowData.optionList.selected}"
                 ng-click="mdtPaginationHelper.selectRow(rowData)"
                 ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
+                ng-contextmenu=""
                 ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
                 <td class="checkboxCell" ng-show="selectableRows">
                     <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
                 </td>
-                <td
+                <!--ng-style="{'width':headerRowData.maxWidth}"-->
+                <td class="column"
+                    style="position:relative"
+                    ng-class="'columnSize'+$index"
+                    ng-repeat="headerRowData in tableDataStorageService.header track by $index"
 
-                        class="column"
-                        ng-class="'columnSize'+$index"
-                        ng-repeat="headerRowData in tableDataStorageService.header track by $index"
-                        ng-style="{'width':headerRowData.maxWidth}"
-                        mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
-                        ng-switch="tableDataStorageService.header[$index].type">
-                    <span ng-switch-when="html"
-                          mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                    <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:'MMM dd, yyyy'}}</span>
-                    <span ng-switch-default>{{rowData.data[headerRowData.id]}}</span>
+                    ng-style="headerRowData.style"
+                    mdt-add-align-class="tableDataStorageService.header[$index].alignRule"
+                    ng-switch="tableDataStorageService.header[$index].type">
+                    <div class="column-container">
+                        <div class="column-body">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
+                            <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:'MMM dd, yyyy'}}</span>
+                            <span ng-switch-default>{{rowData.data[headerRowData.id]}}</span>
+                        </div>
+                    </div>
+
                 </td>
             </tr>
             <tr ng-show="mdtPaginationHelper.isLoading">

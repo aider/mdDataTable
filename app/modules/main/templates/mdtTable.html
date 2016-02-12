@@ -82,7 +82,7 @@
                 ng-class="{'selectedRow': rowData.optionList.selected}"
                 ng-click="mdtPaginationHelper.selectRow(rowData)"
                 ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
-                ng-contextmenu=""
+                ng-contextmenu="mdtPaginationHelper.dblclick(rowData)"
                 ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
                 <td class="checkboxCell" ng-show="selectableRows">

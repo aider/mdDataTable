@@ -349,7 +349,7 @@
 
                 var id = item.id;
                 _storage.push({
-                    rowId: item.id,
+                    rowId: id,
                     optionList: {
                         selected: false,
                         deleted: false,
@@ -357,7 +357,6 @@
                     },
                     data: item
                 });
-                delete item.id;
             });
         };
         TableDataStorageService.prototype.addHeaderCellData = function (ops) {

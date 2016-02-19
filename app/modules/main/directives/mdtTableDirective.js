@@ -107,6 +107,7 @@
                 mdtModel: '=',
                 mdtSelectFn: '&',
                 mdtDblclickFn: '&',
+                mdtContextMenuFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@"
@@ -137,15 +138,15 @@
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         //if (data) {
-                            //$scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblclickFn);
+                        //$scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblclickFn);
 
-                            $scope.$watchCollection('mdtModel.data', function (data) {
-                                if (data) {
-                                    $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn);
-                                }
-                            });
+                        $scope.$watchCollection('mdtModel.data', function (data) {
+                            if (data) {
+                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn);
+                            }
+                        });
 
-                            unbindWatchMdtModel();
+                        unbindWatchMdtModel();
                         //}
                     });
                 }
@@ -162,25 +163,24 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
+                /*
+                 function watchAnalytics() {
+                 $timeout(function() {
+                 var watchers = ($scope.$$watchers) ? $scope.$$watchers.length : 0;
+                 var child = $scope.$$childHead;
+                 while (child) {
+                 watchers += (child.$$watchers) ? child.$$watchers.length : 0;
+                 child = child.$$nextSibling;
+                 }
+                 console.log('watchers: '+ watchers);
+                 watchAnalytics();
+                 },1000);
 
-/*
-                function watchAnalytics() {
-                    $timeout(function() {
-                        var watchers = ($scope.$$watchers) ? $scope.$$watchers.length : 0;
-                        var child = $scope.$$childHead;
-                        while (child) {
-                            watchers += (child.$$watchers) ? child.$$watchers.length : 0;
-                            child = child.$$nextSibling;
-                        }
-                        console.log('watchers: '+ watchers);
-                        watchAnalytics();
-                    },1000);
-
-                }
-                watchAnalytics();
-*/
+                 }
+                 watchAnalytics();
+                 */
                 $scope.hiddenHeadHeight = function () {
-                    return -$('#hiddenHead', element).height() || 0 ;
+                    return -$('#hiddenHead', element).height() || 0;
                 };
 
 
@@ -191,8 +191,8 @@
                 function watiForHeight() {
                     var height = $scope.hiddenHeadHeight();
 
-                    if(!height) {
-                        $timeout(function() {
+                    if (!height) {
+                        $timeout(function () {
                             watiForHeight();
                         });
                     } else {
@@ -200,6 +200,7 @@
                     }
 
                 }
+
                 watiForHeight();
 
                 if (!_.isEmpty($scope.mdtRow)) {
@@ -258,11 +259,52 @@
                         element.find('#reader').append(headings).append(body);
                     });
                 }
+
+            }
+        };
+    }
+
+
+    // function mdtContextMenu($parse) {
+    //     return {
+    //         restrict: 'A',
+    //         scope: true,
+    //         link: function (scope, element, attrs) {
+    //             var menuHandler = $parse(attrs.mdtContextMenu);
+    //             element.on('contextmenu', function (event) {
+    //                 scope.$apply(function() {
+    //                     menuHandler(scope, {$event: (event)});
+    //                 });
+    //                 return false;
+    //
+    //
+    //             });
+    //         }
+    //     };
+    // }
+    function MtdRightClick($parse, $rootScope) {
+        return {
+            compile: function($element, attr) {
+                var fn = $parse(attr.mtdRightClick, /* interceptorFn */ null, /* expensiveChecks */ true);
+                return function EventHandler(scope, element) {
+                    element.on('contextmenu', function(event) {
+                        var callback = function() {
+                            fn(scope, {$event:event});
+                        };
+                        if ($rootScope.$$phase) {
+                            scope.$evalAsync(callback);
+                        } else {
+                            scope.$apply(callback);
+                        }
+                    });
+                };
             }
         };
     }
 
     angular
         .module('material.components.table')
-        .directive('mdtTable', mdtTableDirective);
+        .directive('mdtTable', mdtTableDirective)
+        .directive('mtdRightClick', ['$parse', '$rootScope', MtdRightClick]);
+        // .directive('mdtContextMenu', mdtContextMenu);
 }());

@@ -47,6 +47,10 @@
             this.tableDataStorageService.dblClickCbFn({rowData: rowData});
         };
 
+        mdtPaginationHelper.prototype.contextMenu = function (rowData, $event) {
+            this.tableDataStorageService.contextMenuFn({rowData: rowData, $event:$event});
+        };
+
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
             rowData.optionList.selected = true;
 

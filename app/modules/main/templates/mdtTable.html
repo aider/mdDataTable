@@ -1,4 +1,4 @@
-<md-content flex class="mdtTable md-whiteframe-z1" layout="column" ng-cloak>
+<md-content flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;" ng-cloak>
 
     <div layout="row" layout-align="center" style="display:block;">
         <table cellpadding="0" cellspacing="0" width="100%">
@@ -47,7 +47,7 @@
         </table>
 
     </div>
-    <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}">
+    <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}" style="box-shadow: none;">
         <table id="data-table" cellpadding="0" cellspacing="0"
                ng-style="{'margin-top': hiddenHeadHeight()}">
             <thead id="hiddenHead" style="visibility: hidden;">
@@ -77,12 +77,13 @@
                 </th>
             </tr>
             </thead>
+            <!--mdt-context-menu="mdtPaginationHelper.contextMenu(rowData)"-->
             <tbody>
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"
                 ng-click="mdtPaginationHelper.selectRow(rowData)"
                 ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
-                ng-contextmenu="mdtPaginationHelper.dblclick(rowData)"
+                mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
                 ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
                 <td class="checkboxCell" ng-show="selectableRows">

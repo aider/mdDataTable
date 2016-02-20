@@ -79,7 +79,7 @@
 .mdtTable table .column-container .column-body {
   overflow: hidden;
   position: absolute;
-  top: 11px;
+  top: 13px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -139,12 +139,12 @@
 
 .mdtTable .mdt-header, .mdtTable .mdt-header-alternate {
   height: 64px;
-  padding-left: 24px;
+  padding-left: 16px;
   padding-right: 14px;
 }
 
 .mdtTable .mdt-header md-button, .mdtTable .mdt-header-alternate md-button {
-  margin-left: 24px;
+  margin-left: 16px;
 }
 
 .mdtTable .mdt-header ng-md-icon, .mdtTable .mdt-header-alternate ng-md-icon {
@@ -169,8 +169,8 @@
 }
 
 .mdtTable .mdt-footer .mdt-pagination md-input-container, .mdtTable tr th .mdt-pagination md-input-container {
-  margin-top: 0px;
-  margin-bottom: 0px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .mdtTable .checkboxCell {
@@ -184,7 +184,7 @@
 }
 
 .mdtTable .checkboxCell + td, .mdtTable .checkboxCell + th {
-  padding-left: 24px;
+  padding-left: 16px;
 }
 
 .mdtTable tr td {
@@ -194,11 +194,11 @@
 }
 
 .mdtTable td:first-child, .mdtTable th:first-child {
-  padding: 0 0 0 24px;
+  padding: 0 0 0 16px;
 }
 
 .mdtTable td:last-child, .mdtTable th:last-child {
-  padding-right: 24px;
+  padding-right: 16px;
 }
 
 .mdtTable .column {
@@ -215,7 +215,7 @@
 
 .mdtTable tr th {
   color: #212121;
-  border-bottom: solid 1px #DDDDDD;
+  border-bottom: 0;
 }
 
 .mdtTable tr td {

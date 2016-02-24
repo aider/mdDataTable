@@ -110,7 +110,11 @@
                 mdtContextMenuFn: '&',
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
-                mdtRowPaginatorErrorMessage: "@"
+                mdtRowPaginatorErrorMessage: "@",
+
+                menuList: "=",
+                mdtMenuSelected: "&onMenuSelected",
+                onPopup: "&"
             },
             controller: function ($scope) {
                 var vm = this;
@@ -137,9 +141,6 @@
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
 
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
-                        //if (data) {
-                        //$scope.tableDataStorageService.initModel(data, $scope.mdtSelectFn, $scope.mdtDblclickFn);
-
                         $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data) {
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn);
@@ -147,7 +148,6 @@
                         });
 
                         unbindWatchMdtModel();
-                        //}
                     });
                 }
 
@@ -163,6 +163,11 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
+
+
+                $scope.onMenuSelected = function(menuItem) {
+                    $scope.mdtMenuSelected({menuItem:menuItem});
+                };
                 /*
                  function watchAnalytics() {
                  $timeout(function() {
@@ -264,6 +269,23 @@
         };
     }
 
+    function mtdDropdown() {
+        return {
+            restrict: 'EA',
+            scope: {
+                menuList: '=',
+                callback: '&onMenuSelected'
+            },
+            templateUrl: '/main/templates/mdtDropdown.html',
+            link: function (scope, elem, attrs, ctrl) {
+                scope.onMenuSelected = function (menuItem) {
+                    debugger;
+                    scope.callback({menuItem: menuItem});
+                };
+            }
+        };
+    }
+
 
     // function mdtContextMenu($parse) {
     //     return {
@@ -305,6 +327,6 @@
     angular
         .module('material.components.table')
         .directive('mdtTable', mdtTableDirective)
-        .directive('mtdRightClick', ['$parse', '$rootScope', MtdRightClick]);
-        // .directive('mdtContextMenu', mdtContextMenu);
+        .directive('mtdRightClick', ['$parse', '$rootScope', MtdRightClick])
+        .directive('mtdDropdown', mtdDropdown);
 }());

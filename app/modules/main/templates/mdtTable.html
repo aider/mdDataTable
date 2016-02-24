@@ -54,7 +54,6 @@
                on-menu-selected="onMenuSelected(menuItem)"
                on-popup="onPopup()"
 
-
                ng-style="{'margin-top': hiddenHeadHeight()}">
             <thead id="hiddenHead" style="visibility: hidden;">
             <tr class="theadTrRow"
@@ -83,7 +82,6 @@
                 </th>
             </tr>
             </thead>
-            <!--mdt-context-menu="mdtPaginationHelper.contextMenu(rowData)"-->
             <tbody>
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"

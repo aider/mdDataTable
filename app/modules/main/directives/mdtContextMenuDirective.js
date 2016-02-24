@@ -17,10 +17,6 @@
                     scope.onMenuSelected({menuItem: 'aaa'});
 
                     scope.onDropdownMenuSelected = function (menuItem, menu) {
-                        //var onMenuSelectedHandler = $parse(attrs.onMenuSelected);
-                        debugger;
-                        //onMenuSelectedHandler(scope, {menuItem: (menuItem)});
-
                         scope.onMenuSelected({menuItem: menuItem});
                     };
 

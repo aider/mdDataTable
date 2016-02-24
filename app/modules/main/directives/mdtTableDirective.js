@@ -279,7 +279,6 @@
             templateUrl: '/main/templates/mdtDropdown.html',
             link: function (scope, elem, attrs, ctrl) {
                 scope.onMenuSelected = function (menuItem) {
-                    debugger;
                     scope.callback({menuItem: menuItem});
                 };
             }

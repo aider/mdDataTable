@@ -33,6 +33,7 @@
         };
     }
 
-    
-    
+    angular
+        .module('material.components.table')
+        .directive('mdtSortHandler', mdtSortHandlerDirective);
 }());

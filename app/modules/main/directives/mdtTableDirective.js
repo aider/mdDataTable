@@ -327,5 +327,14 @@
         .module('material.components.table')
         .directive('mdtTable', mdtTableDirective)
         .directive('mtdRightClick', ['$parse', '$rootScope', MtdRightClick])
-        .directive('mtdDropdown', mtdDropdown);
+        .directive('mtdDropdown', mtdDropdown)
+        .filter('ifEmpty', function() {
+            return function(input, defaultValue) {
+                if (angular.isUndefined(input) || input === null || input === '') {
+                    return defaultValue;
+                }
+
+                return input;
+            }
+        });
 }());

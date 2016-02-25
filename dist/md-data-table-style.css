@@ -225,3 +225,29 @@
 .mdtTable ng-md-icon {
   fill: #757575;
 }
+
+/*context-menu*/
+mtd-dropdown.context-menu {
+  background-color: white;
+  position: fixed;
+  z-index: 51;
+  min-width: 250px;
+}
+
+.mdt-dropdown-menu-item {
+  overflow: hidden;
+  margin: 0;
+  display: block;
+  text-align: left;
+  padding: 5px 10px 5px 20px;
+  text-transform: none;
+  font-size: 14px;
+  font-weight: normal;
+}
+.mdt-dropdown-menu-item md-icon {
+  font-size: 20px;
+  font-weight: normal;
+}
+.mdt-dropdown-menu-item .name {
+  padding-left: 10px;
+}

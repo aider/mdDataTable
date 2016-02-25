@@ -103,8 +103,8 @@
                     <div class="column-container" ng-style="headerRowData.style">
                         <div class="column-body">
                             <span ng-switch-when="html" mdt-add-html-content-to-cell="tableDataStorageService.header[$index].content(rowData)"></span>
-                            <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:'MMM dd, yyyy'}}</span>
-                            <span ng-switch-default>{{rowData.data[headerRowData.id]}}</span>
+                            <span ng-switch-when="date">{{rowData.data[headerRowData.id] || '&#8212' | date:'MMM dd, yyyy'}}</span>
+                            <span ng-switch-default>{{tableDataStorageService.header[$index].content(rowData) || rowData.data[headerRowData.id] || '&#8212'}}</span>
                         </div>
                     </div>
 

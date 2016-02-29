@@ -46,6 +46,10 @@
         mdtPaginationHelper.prototype.dblclick = function (rowData) {
             this.tableDataStorageService.dblClickCbFn({rowData: rowData});
         };
+        mdtPaginationHelper.prototype.longClick = function (rowData) {
+            this.selectRow(rowData);
+            this.contextMenu({rowData: rowData});
+        };
 
         mdtPaginationHelper.prototype.contextMenu = function (rowData, $event) {
             this.tableDataStorageService.contextMenuFn({rowData: rowData, $event:$event});

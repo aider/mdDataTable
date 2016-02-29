@@ -50,6 +50,7 @@
     </div>
     <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}"
                 style="box-shadow: none">
+
         <table id="data-table" cellpadding="0" cellspacing="0"
                mtd-context-menu
                menu-list="menuList"
@@ -85,11 +86,15 @@
             </tr>
             </thead>
             <tbody>
+
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"
+                on-long-press="mdtPaginationHelper.selectRow(rowData)"
+
                 ng-click="mdtPaginationHelper.selectRow(rowData)"
                 ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
                 mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
+
                 ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
                 <td class="checkboxCell" ng-show="selectableRows">

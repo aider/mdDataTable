@@ -1,6 +1,8 @@
 <md-content flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;" ng-cloak>
-
-    <div layout="row" layout-align="center" style="display:block;">
+    <md-content ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center">
+        <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
+    </md-content>
+    <div layout="row" layout-align="center" style="display:block;" ng-show="mdtPaginationHelper.getRows().length">
         <table cellpadding="0" cellspacing="0" width="100%">
             <thead id="visible-header">
             <tr class="theadTrRow" mdt-animate-sort-icon-handler>
@@ -49,6 +51,7 @@
 
     </div>
     <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}"
+                ng-show="mdtPaginationHelper.getRows().length"
                 style="box-shadow: none">
 
         <table id="data-table" cellpadding="0" cellspacing="0"
@@ -97,9 +100,6 @@
 
                 ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
 
-                <td class="checkboxCell" ng-show="selectableRows">
-                    <md-checkbox aria-label="select" ng-model="rowData.optionList.selected"></md-checkbox>
-                </td>
 
                 <td ng-style="headerRowData.style" style="position:relative"
                     class="column"
@@ -111,10 +111,13 @@
                         <div class="column-body">
                             <span ng-switch-when="html"
                                   mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
-                            <span ng-switch-when="date">{{rowData.data[headerRowData.id] | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                            <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] || '&#8212'}}</span>
+                            <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
                         </div>
                     </div>
+
+
+
 
                 </td>
             </tr>

@@ -111,6 +111,7 @@
                 mdtRow: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@",
+                mdtEmptyTitle: "=",
 
                 menuList: "=",
                 mdtMenuSelected: "&onMenuSelected",

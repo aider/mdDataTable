@@ -203,6 +203,7 @@
                         });
                     } else {
                         $('#data-table', element).css('margin-top', height);
+                        $scope.tableIsReady = true;
                     }
 
                 }

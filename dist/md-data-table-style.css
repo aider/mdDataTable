@@ -16,6 +16,9 @@
   /* INTERACTION */
   /* default icon color */
 }
+.mdtTable.invisible {
+  visibility: hidden;
+}
 .mdtTable table {
   width: 100%;
 }

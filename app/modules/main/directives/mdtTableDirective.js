@@ -144,7 +144,13 @@
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data) {
+                                $scope.tableDataIsReady = true;
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                if ($scope.mdtPaginationHelper.getRows().length) {
+                                    $scope.tableIsReady = false;
+                                    $scope.tableDataIsReady = false;
+                                    $scope.watiForHeight();
+                                }
                             }
                         });
 
@@ -164,10 +170,8 @@
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
 
-
-
-                $scope.onMenuSelected = function(menuItem) {
-                    $scope.mdtMenuSelected({menuItem:menuItem});
+                $scope.onMenuSelected = function (menuItem) {
+                    $scope.mdtMenuSelected({menuItem: menuItem});
                 };
                 /*
                  function watchAnalytics() {
@@ -194,21 +198,19 @@
                     return -$('#hiddenBody', element).height();
                 };
 
-                function watiForHeight() {
+                $scope.watiForHeight = function () {
                     var height = $scope.hiddenHeadHeight();
-
-                    if (!height) {
+                    if (!height && !$scope.tableDataIsReady) {
                         $timeout(function () {
-                            watiForHeight();
+                            $scope.watiForHeight();
                         });
                     } else {
                         $('#data-table', element).css('margin-top', height);
                         $scope.tableIsReady = true;
                     }
+                };
 
-                }
-
-                watiForHeight();
+                $scope.watiForHeight();
 
                 if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter
@@ -307,12 +309,12 @@
     // }
     function MtdRightClick($parse, $rootScope) {
         return {
-            compile: function($element, attr) {
+            compile: function ($element, attr) {
                 var fn = $parse(attr.mtdRightClick, /* interceptorFn */ null, /* expensiveChecks */ true);
                 return function EventHandler(scope, element) {
-                    element.on('contextmenu', function(event) {
-                        var callback = function() {
-                            fn(scope, {$event:event});
+                    element.on('contextmenu', function (event) {
+                        var callback = function () {
+                            fn(scope, {$event: event});
                         };
                         if ($rootScope.$$phase) {
                             scope.$evalAsync(callback);
@@ -330,8 +332,8 @@
         .directive('mdtTable', mdtTableDirective)
         .directive('mtdRightClick', ['$parse', '$rootScope', MtdRightClick])
         .directive('mtdDropdown', mtdDropdown)
-        .filter('ifEmpty', function() {
-            return function(input, defaultValue) {
+        .filter('ifEmpty', function () {
+            return function (input, defaultValue) {
                 if (angular.isUndefined(input) || input === null || input === '') {
                     return defaultValue;
                 }

@@ -141,10 +141,15 @@
 
                     vm.addRowData = _.bind($scope.tableDataStorageService.addRowData, $scope.tableDataStorageService);
 
+                    $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data) {
-                                $scope.tableDataIsReady = true;
+                                $scope.tableDataCnt++;
+                                if ($scope.tableDataCnt > 1) {
+                                    $scope.tableDataCnt = 0;
+                                    $scope.tableDataIsReady = true;
+                                }
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
                                 if ($scope.mdtPaginationHelper.getRows().length) {
                                     $scope.tableIsReady = false;

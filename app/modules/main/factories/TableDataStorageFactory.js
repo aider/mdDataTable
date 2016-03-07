@@ -34,7 +34,7 @@
 
             mdtModel.data.forEach(function (item) {
 
-                _header.forEach(function (header) {
+                _header.forEach(function (header, index) {
                     var _value = item[header.id];
                     var metrics = context.measureText(_value);
                     var _width = metrics.width;

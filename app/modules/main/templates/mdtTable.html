@@ -50,7 +50,7 @@
         </table>
 
     </div>
-    <md-content flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}"
+    <md-content class="data-container" flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}"
                 ng-show="mdtPaginationHelper.getRows().length"
                 style="box-shadow: none">
 
@@ -88,7 +88,7 @@
                 </th>
             </tr>
             </thead>
-            <tbody>
+            <tbody vs-repeat vs-scroll-parent=".data-container">
 
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"
@@ -115,10 +115,6 @@
                             <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
                         </div>
                     </div>
-
-
-
-
                 </td>
             </tr>
             <tr ng-show="mdtPaginationHelper.isLoading">
@@ -132,8 +128,6 @@
             </tr>
             </tbody>
         </table>
-
-
     </md-content>
 
 

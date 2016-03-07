@@ -25,6 +25,7 @@
                         </div>
                     </div>
                 </th>
+                <th ng-style="{'width':scrollWidth}"></th>
             </tr>
             </thead>
             <tbody id="hiddenBody" style="visibility: hidden;">
@@ -44,8 +45,8 @@
                             <span ng-switch-default>{{headerRowData.content(tableDataStorageService.maxRow) || tableDataStorageService.maxRow.data[headerRowData.id] || '&#8212'}}</span>
                         </div>
                     </div>
-
                 </td>
+                <td style="width: 1px"></td>
             </tbody>
         </table>
 
@@ -86,10 +87,11 @@
                         </div>
                     </div>
                 </th>
+                <th ng-style="{'width':scrollWidth}"></th>
             </tr>
             </thead>
-            <tbody vs-repeat vs-scroll-parent=".data-container">
-
+            <tbody >
+<!--vs-repeat vs-scroll-parent=".data-container"-->
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"
                 on-long-press="mdtPaginationHelper.selectRow(rowData)"
@@ -116,6 +118,7 @@
                         </div>
                     </div>
                 </td>
+                <td style="width: 1px"></td>
             </tr>
             <tr ng-show="mdtPaginationHelper.isLoading">
                 <td colspan="999">

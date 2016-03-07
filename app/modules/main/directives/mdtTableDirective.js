@@ -200,7 +200,7 @@
                     return widthNoScroll - widthWithScroll;
                 }
 
-                $scope.scrollWidth = getScrollbarWidth();
+                $scope.scrollWidth = getScrollbarWidth() || 1;
                 /*
                  function watchAnalytics() {
                  $timeout(function() {

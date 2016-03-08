@@ -234,6 +234,10 @@
                         });
                     } else {
                         $('#data-table', element).css('margin-top', height);
+                        $timeout(function () {
+                            var $dc = $('.data-container', element);
+                            $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
+                        });
                         $scope.tableIsReady = true;
                     }
                 };

@@ -25,7 +25,7 @@
                         </div>
                     </div>
                 </th>
-                <th ng-style="{'width':scrollWidth,'padding-right':'0'}"></th>
+                <th ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></th>
             </tr>
             </thead>
             <tbody id="hiddenBody" style="visibility: hidden;">

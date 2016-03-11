@@ -89,8 +89,7 @@
                 </th>
             </tr>
             </thead>
-            <tbody >
-<!--vs-repeat vs-scroll-parent=".data-container"-->
+            <tbody>
             <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
                 ng-class="{'selectedRow': rowData.optionList.selected}"
                 on-long-press="mdtPaginationHelper.selectRow(rowData)"
@@ -109,15 +108,20 @@
                     mdt-add-align-class="headerRowData.alignRule"
                     ng-switch="headerRowData.type">
                     <div class="column-container" ng-style="headerRowData.style">
-                        <div class="column-body">
-                            <span ng-switch-when="html"
-                                  mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
+                        <div class="column-body" ng-style="headerRowData.secondColumn.content(rowData) && {'right': headerRowData.secondColumn.style.width}">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
                             <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
                             <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
                         </div>
+                        <div ng-show="headerRowData.secondColumn.content(rowData)" class="column2-body" ng-style="headerRowData.secondColumn.style">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
+                            <span ng-switch-when="date">{{(headerRowData.secondColumn.content(rowData) || rowData.data[headerRowData.secondColumn.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) || rowData.data[headerRowData.secondColumn.id] | ifEmpty:'&#8212'}}</span>
+                        </div>
                     </div>
+
+
                 </td>
-                <!--<td style="width: 1px;padding-right: 0;"></td>-->
             </tr>
             <tr ng-show="mdtPaginationHelper.isLoading">
                 <td colspan="999">

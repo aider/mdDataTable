@@ -3,6 +3,11 @@
 }
 
 .mdtTable {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   box-shadow: none;
   font-size: 15px;
   /* 12sp Roboto Medium, 54% black */
@@ -15,6 +20,71 @@
   /* border separation color */
   /* INTERACTION */
   /* default icon color */
+}
+.mdtTable .row-header,
+.mdtTable .row-container {
+  display: flex;
+}
+.mdtTable .row-header .td, .mdtTable .row-header .th,
+.mdtTable .row-container .td,
+.mdtTable .row-container .th {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0px;
+  /* new algorithm mises the calculation of the width */
+}
+.mdtTable .td {
+  padding: 0 6px;
+}
+.mdtTable .th {
+  padding: 0 6px;
+  height: 56px;
+  line-height: 56px;
+  min-height: 56px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666666;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+.mdtTable .th[disabled] {
+  cursor: auto;
+}
+.mdtTable .th:focus {
+  outline: none;
+}
+.mdtTable .th:hover .hoverSortIcons ng-md-icon {
+  visibility: visible;
+}
+.mdtTable .th ng-md-icon {
+  width: 16px;
+  height: 16px;
+}
+.mdtTable .th .hoverSortIcons ng-md-icon {
+  visibility: hidden;
+  fill: #b3b3b3;
+}
+.mdtTable .th .hoverSortIcons ng-md-icon svg {
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+.mdtTable md-list {
+  overflow-y: auto;
+}
+.mdtTable md-list-item {
+  border-bottom: solid 1px #DDDDDD;
+  padding: 0;
+  align-items: center;
+  -webkit-align-items: center;
+  font-size: 13px;
+  height: 48px;
+  min-height: 48px;
+}
+.mdtTable md-list-item div,
+.mdtTable md-list-item button {
+  padding: 0;
 }
 .mdtTable.invisible {
   visibility: hidden;
@@ -67,7 +137,8 @@
   width: 100%;
   height: 100%;
 }
-.mdtTable table .column-container .column-header-body {
+.mdtTable table .column-container .td {
+  padding: 0 6px;
   overflow: hidden;
   position: absolute;
   top: 20px;
@@ -79,7 +150,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mdtTable table .column-container .column-body {
+.mdtTable table .column-container .th {
   overflow: hidden;
   position: absolute;
   top: 13px;
@@ -105,10 +176,6 @@
   background-color: #FAFAFA;
   border-bottom: 1px solid #eeeeee;
 }
-.mdtTable #visible-header th:hover {
-  background-color: #EEEEEE;
-  color: #404040;
-}
 .mdtTable .noselect, .mdtTable table tr {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -118,16 +185,16 @@
   user-select: none;
 }
 
-.mdtTable th .sortedColumn {
+.mdtTable .th .sortedColumn {
   /* when hoverSortIcons on a sorted column*/
   /* sort icon rotated -90 degrees for descending sort */
 }
 
-.mdtTable th .sortedColumn .hoverSortIcons ng-md-icon {
+.mdtTable .th .sortedColumn .hoverSortIcons ng-md-icon {
   display: none;
 }
 
-.mdtTable th .sortedColumn ng-md-icon {
+.mdtTable .row .sortedColumn ng-md-icon {
   /* specified 16px is a fix now cause angular materia generates a 24x24 icon even the passed value is 16  */
   width: 16px;
   height: 16px;
@@ -135,12 +202,12 @@
   /* sort icon rotated 90 degrees for ascending sort (default) */
 }
 
-.mdtTable th .sortedColumn ng-md-icon svg {
+.mdtTable .th .sortedColumn ng-md-icon svg {
   -webkit-transform: rotate(90deg);
   transform: rotate(90deg);
 }
 
-.mdtTable th .sortedColumn.descending ng-md-icon > svg {
+.mdtTable .th .sortedColumn.descending ng-md-icon > svg {
   -webkit-transform: rotate(-90deg);
   transform: rotate(-90deg);
 }
@@ -172,16 +239,16 @@
   color: #0D47A1;
 }
 
-.mdtTable .mdt-footer, .mdtTable tr th {
+.mdtTable .mdt-footer, .mdtTable .tr .th {
   height: 56px;
 }
 
-.mdtTable .mdt-footer .mdt-pagination, .mdtTable tr th .mdt-pagination {
+.mdtTable .mdt-footer .mdt-pagination, .mdtTable .tr .th .mdt-pagination {
   font-size: 12px;
   color: #757575;
 }
 
-.mdtTable .mdt-footer .mdt-pagination md-input-container, .mdtTable tr th .mdt-pagination md-input-container {
+.mdtTable .mdt-footer .mdt-pagination md-input-container, .mdtTable .tr .th .mdt-pagination md-input-container {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -196,7 +263,7 @@
   padding: 0;
 }
 
-.mdtTable .checkboxCell + td, .mdtTable .checkboxCell + th {
+.mdtTable .checkboxCell + .td, .mdtTable .checkboxCell + .th {
   padding-left: 16px;
 }
 
@@ -206,11 +273,13 @@
   font-size: 13px;
 }
 
-.mdtTable td:first-child, .mdtTable th:first-child {
-  padding: 0 0 0 16px;
+.mdtTable .td:first-child,
+.mdtTable .th:first-child {
+  padding-left: 16px;
 }
 
-.mdtTable td:last-child, .mdtTable th:last-child {
+.mdtTable .td:last-child,
+.mdtTable .th:last-child {
   padding-right: 16px;
 }
 
@@ -226,13 +295,9 @@
   text-align: right;
 }
 
-.mdtTable tr th {
+.mdtTable .tr .th {
   color: #212121;
   border-bottom: 0;
-}
-
-.mdtTable tr td {
-  border-bottom: solid 1px #DDDDDD;
 }
 
 .mdtTable ng-md-icon {

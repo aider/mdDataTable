@@ -148,9 +148,9 @@
                                 $scope.tableIsReady = true;
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
                                 if ($scope.mdtPaginationHelper.getRows().length) {
-                                    $scope.tableIsReady = false;
-                                    $scope.tableDataIsReady = false;
-                                    $scope.watiForHeight();
+                                    // $scope.tableIsReady = false;
+                                    // $scope.tableDataIsReady = false;
+                                    // $scope.watiForHeight();
                                 }
                             }
                         });

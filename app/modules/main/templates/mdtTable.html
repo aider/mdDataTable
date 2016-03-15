@@ -2,138 +2,47 @@
     <md-content ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
     </md-content>
-    <div layout="row" layout-align="center" style="display:block;" ng-show="mdtPaginationHelper.getRows().length">
-        <table cellpadding="0" cellspacing="0" width="100%">
-            <thead id="visible-header">
-            <tr class="theadTrRow" mdt-animate-sort-icon-handler>
-                <th class="checkboxCell"
-                    style=" text-align:left;"
-                    ng-if="selectableRows"
-                    mdt-select-all-rows-handler>
-                    <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
-                </th>
-                <th ng-style="headerRowData.style" style="position:relative"
-                    class="column"
-                    ng-class="'columnSize'+$index"
-                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    mdt-sort-handler
-                    md-ink-ripple="{{rippleEffect}}">
-                    <div class="column-container" ng-style="headerRowData.style">
-                        <div class="column-header-body">
-                            <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
-                        </div>
-                    </div>
-                </th>
-                <th ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></th>
-            </tr>
-            </thead>
-            <tbody id="hiddenBody" style="visibility: hidden;">
-            <tr class="theadTrRow" mdt-animate-sort-icon-handler>
-
-                <td style="position:relative" ng-style="headerRowData.style"
-                    class="column"
-                    ng-class="'columnSize'+$index"
-                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    ng-switch="headerRowData.type">
-                    <div class="column-container" ng-style="headerRowData.style">
-                        <div class="column-body">
-                            <span ng-switch-when="html"
-                                  mdt-add-html-content-to-cell="headerRowData.content(tableDataStorageService.maxRow)"></span>
-                            <span ng-switch-when="date">{{tableDataStorageService.maxRow.data[headerRowData.id] | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                            <span ng-switch-default>{{headerRowData.content(tableDataStorageService.maxRow) || tableDataStorageService.maxRow.data[headerRowData.id] || '&#8212'}}</span>
-                        </div>
-                    </div>
-                </td>
-                <!--<td style="width: 1px;padding-right: 0;"></td>-->
-            </tbody>
-        </table>
-
+    <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length">
+        <!--<md-list-item >-->
+        <div layout="row"  mdt-animate-sort-icon-handler flex>
+            <div flex-order="1"
+                 ng-style="headerRowData.style"
+                 class="th"
+                 mdt-add-align-class="headerRowData.alignRule"
+                 mdt-sort-handler
+                 md-ink-ripple="{{rippleEffect}}"
+                 ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
+                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+            </div>
+        </div>
     </div>
-    <md-content class="data-container" flex layout="row" layout-align="center" ng-style="{'margin-top': hiddenBodyHeight()}"
-                ng-show="mdtPaginationHelper.getRows().length"
-                style="box-shadow: none">
+    <md-content class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length">
+        <md-list flex mtd-context-menu
+                 menu-list="menuList"
+                 on-menu-selected="onMenuSelected(menuItem)"
+                 on-popup="onPopup()">
+            <md-list-item ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
+                          class="row-container"
+                          ng-class="{'selectedRow': rowData.optionList.selected}"
+                          ng-click="mdtPaginationHelper.selectRow(rowData)"
+                          on-long-press="mdtPaginationHelper.selectRow(rowData)"
+                          ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
+                          mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
+                    <div class="td"
+                         flex-order="{{$index}}"
 
-        <table id="data-table" cellpadding="0" cellspacing="0"
-               mtd-context-menu
-               menu-list="menuList"
-               on-menu-selected="onMenuSelected(menuItem)"
-               on-popup="onPopup()"
+                         ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
+                         ng-class="headerRowData.class"
+                         ng-switch="headerRowData.type"
+                         ng-style="headerRowData.style">
+                        <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
+                        <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                        <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
 
-               ng-style="{'margin-top': hiddenHeadHeight()}">
-            <thead id="hiddenHead" style="visibility: hidden;">
-            <tr class="theadTrRow"
-                mdt-animate-sort-icon-handler>
-
-                <th class="checkboxCell"
-                    style="text-align:left;"
-                    ng-if="selectableRows"
-                    mdt-select-all-rows-handler>
-                    <md-checkbox aria-label="select all" ng-model="selectAllRows"></md-checkbox>
-                </th>
-
-                <th ng-style="headerRowData.style" style="position: relative"
-                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    class="column"
-                    ng-class="'columnSize'+$index"
-                    mdt-sort-handler
-                    md-ink-ripple="{{rippleEffect}}">
-
-                    <div class="column-container" ng-style="headerRowData.style">
-                        <div class="column-header-body">
-                            <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
-                        </div>
-                    </div>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
-                ng-class="{'selectedRow': rowData.optionList.selected}"
-                on-long-press="mdtPaginationHelper.selectRow(rowData)"
-
-                ng-click="mdtPaginationHelper.selectRow(rowData)"
-                ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
-                mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
-
-                ng-show="(isPaginationEnabled() === false || rowData.optionList.visible === true) && rowData.optionList.deleted === false">
-
-
-                <td ng-style="headerRowData.style" style="position:relative"
-                    class="column"
-                    ng-class="'columnSize'+$index"
-                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    ng-switch="headerRowData.type">
-                    <div class="column-container" ng-style="headerRowData.style">
-                        <div class="column-body" ng-style="headerRowData.secondColumn.content(rowData) && {'right': headerRowData.secondColumn.style.width}">
-                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
-                            <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                            <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
-                        </div>
-                        <div ng-show="headerRowData.secondColumn.content(rowData)" class="column2-body" ng-style="headerRowData.secondColumn.style">
-                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
-                            <span ng-switch-when="date">{{(headerRowData.secondColumn.content(rowData) || rowData.data[headerRowData.secondColumn.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                            <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) || rowData.data[headerRowData.secondColumn.id] | ifEmpty:'&#8212'}}</span>
-                        </div>
                     </div>
 
-
-                </td>
-            </tr>
-            <tr ng-show="mdtPaginationHelper.isLoading">
-                <td colspan="999">
-                    <md-progress-linear md-mode="indeterminate"></md-progress-linear>
-                </td>
-            </tr>
-            <tr ng-show="mdtPaginationHelper.isLoadError">
-                <td colspan="999" ng-bind="mdtPaginationHelper.mdtRowPaginatorErrorMessage">
-                </td>
-            </tr>
-            </tbody>
-        </table>
+            </md-list-item>
+        </md-list>
     </md-content>
 
 

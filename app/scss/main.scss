@@ -17,7 +17,34 @@ $checkBoxWidth: 18px;
   .row-header,
   .row-container {
     display: flex;
-    .td, .th {
+    .td {
+      .first-column-section {
+        //span {
+        white-space: nowrap;
+        -webkit-order: 1;
+        -webkit-flex: 1;
+        -webkit-flex: 0 1 auto; /*important*/
+        text-overflow: ellipsis;
+        overflow: hidden;
+        min-width: 0px; /* new algorithm mises the calculation of the width */
+        //}
+      }
+      .second-column-section {
+        -webkit-flex: 1;
+        -webkit-order: 2;
+        -webkit-flex: 1 0 auto;
+      }
+    }
+    //.td > div:last-child {
+    //  white-space: nowrap;
+    //  -webkit-order: 1;
+    //  -webkit-flex: 1;
+    //  -webkit-flex: 0 1 auto; /*important*/
+    //  text-overflow: ellipsis;
+    //  overflow: hidden;
+    //  min-width: 0px; /* new algorithm mises the calculation of the width */
+    //}
+    .th {
       white-space: nowrap;
       //-webkit-order:1;
       //-webkit-flex: 1;
@@ -28,9 +55,11 @@ $checkBoxWidth: 18px;
     }
   }
   .td {
+    display: -webkit-flex;
     padding: 0 6px;
   }
   .th {
+    display: -webkit-flex;
     padding: 0 6px;
     height: 56px;
     line-height: 56px;

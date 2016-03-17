@@ -31,9 +31,19 @@
             var canvas = document.createElement("canvas");
             var context = canvas.getContext("2d");
             //context.font = font;
-
+            var orderIndex = 0;
+            _header.forEach(function (header, index) {
+                header.class = header.class || '';
+                header.class += ' flex-order-' + orderIndex;
+                orderIndex++;
+                // if (header.secondColumn) {
+                //     header.class += ' first-column-section';
+                //     header.secondColumn.class += ' flex-order-' + orderIndex;
+                // } else {
+                //     // header.class
+                // }
+            });
             mdtModel.data.forEach(function (item) {
-
                 _header.forEach(function (header, index) {
                     var _value = item[header.id];
                     var metrics = context.measureText(_value);

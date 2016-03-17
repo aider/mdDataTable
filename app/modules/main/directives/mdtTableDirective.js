@@ -144,9 +144,11 @@
                     $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         $scope.$watchCollection('mdtModel.data', function (data) {
-                            if (data) {
-                                $scope.tableIsReady = true;
+                            if (data && data.length) {
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                $timeout(function () {
+                                    $scope.tableIsReady = true;
+                                }, 300);
                                 if ($scope.mdtPaginationHelper.getRows().length) {
                                     // $scope.tableIsReady = false;
                                     // $scope.tableDataIsReady = false;
@@ -163,6 +165,9 @@
                 function addHeaderCell(ops) {
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
+
+
+
             },
             link: function ($scope, element, attrs, ctrl, transclude) {
                 injectContentIntoTemplate();

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    angular.module('material.components.table', ['mdtTemplates', 'ngMaterial', 'ngMdIcons']);
+    angular.module('material.components.table', ['mdtTemplates', 'ngMaterial', 'ngMdIcons', 'vs-repeat']);
 }());
 (function(){
     'use strict';
@@ -357,6 +357,68 @@
 
                 initTableStorageServiceAndBindMethods();
 
+                /****************************************/
+                var DynamicItems = function () {
+                    /**
+                     * @type {!Object<?Array>} Data pages, keyed by page number (0-index).
+                     */
+                    this.loadedPages = {};
+
+                    /** @type {number} Total number of items. */
+                    this.numItems = 0;
+
+                    /** @const {number} Number of items to fetch per request. */
+                    this.PAGE_SIZE = 18;
+
+                    this.fetchNumItems_();
+                };
+
+                // Required.
+                DynamicItems.prototype.getItemAtIndex = function (index) {
+                    var pageNumber = Math.floor(index / this.PAGE_SIZE);
+                    var page = this.loadedPages[pageNumber];
+
+                    if (page) {
+                        return page[index % this.PAGE_SIZE];
+                    } else if (page !== null) {
+                        var sTime = Date.now();
+
+                        this.fetchPage_(pageNumber);
+
+                        var eTime = Date.now();
+                        console.log('etime: '+ (eTime-sTime));
+                    }
+                };
+
+                // Required.
+                DynamicItems.prototype.getLength = function () {
+                    return this.numItems;
+                };
+
+                DynamicItems.prototype.fetchPage_ = function (pageNumber) {
+                    // Set the page to null so we know it is already being fetched.
+                    this.loadedPages[pageNumber] = null;
+
+                    // For demo purposes, we simulate loading more items with a timed
+                    // promise. In real code, this function would likely contain an
+                    // $http request.
+                    // $timeout(angular.noop, 300).then(angular.bind(this, function () {
+                    this.loadedPages[pageNumber] = [];
+                    var allRows = $scope.mdtPaginationHelper.getRows();
+                    var pageOffset = pageNumber * this.PAGE_SIZE;
+                    for (var i = pageOffset; i < pageOffset + this.PAGE_SIZE; i++) {
+                        this.loadedPages[pageNumber].push(allRows[i]);
+                    }
+                    // }));
+                };
+                DynamicItems.prototype.fetchNumItems_ = function () {
+                    // $timeout(angular.noop, 300).then(angular.bind(this, function() {
+                    this.numItems = $scope.mdtPaginationHelper.getRows().length;
+                    // }));
+                };
+                /****************************************/
+
+
                 function initTableStorageServiceAndBindMethods() {
                     $scope.tableDataStorageService = TableDataStorageFactory.getInstance();
 
@@ -380,9 +442,10 @@
                         $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data && data.length) {
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                $scope.dynamicItems = new DynamicItems();
                                 $timeout(function () {
                                     $scope.tableIsReady = true;
-                                }, 300);
+                                }, 500);
                                 if ($scope.mdtPaginationHelper.getRows().length) {
                                     // $scope.tableIsReady = false;
                                     // $scope.tableDataIsReady = false;
@@ -399,7 +462,6 @@
                 function addHeaderCell(ops) {
                     $scope.tableDataStorageService.addHeaderCellData(ops);
                 }
-
 
 
             },
@@ -798,6 +860,603 @@
     });
 })();
 
+//
+// Copyright Kamil Pękala http://github.com/kamilkp
+// Angular Virtual Scroll Repeat v1.1.6 2016/03/01
+//
+
+(function(window, angular) {
+    'use strict';
+    /* jshint eqnull:true */
+    /* jshint -W038 */
+
+    // DESCRIPTION:
+    // vsRepeat directive stands for Virtual Scroll Repeat. It turns a standard ngRepeated set of elements in a scrollable container
+    // into a component, where the user thinks he has all the elements rendered and all he needs to do is scroll (without any kind of
+    // pagination - which most users loath) and at the same time the browser isn't overloaded by that many elements/angular bindings etc.
+    // The directive renders only so many elements that can fit into current container's clientHeight/clientWidth.
+
+    // LIMITATIONS:
+    // - current version only supports an Array as a right-hand-side object for ngRepeat
+    // - all rendered elements must have the same height/width or the sizes of the elements must be known up front
+
+    // USAGE:
+    // In order to use the vsRepeat directive you need to place a vs-repeat attribute on a direct parent of an element with ng-repeat
+    // example:
+    // <div vs-repeat>
+    //      <div ng-repeat="item in someArray">
+    //          <!-- content -->
+    //      </div>
+    // </div>
+    //
+    // or:
+    // <div vs-repeat>
+    //      <div ng-repeat-start="item in someArray">
+    //          <!-- content -->
+    //      </div>
+    //      <div>
+    //         <!-- something in the middle -->
+    //      </div>
+    //      <div ng-repeat-end>
+    //          <!-- content -->
+    //      </div>
+    // </div>
+    //
+    // You can also measure the single element's height/width (including all paddings and margins), and then speficy it as a value
+    // of the attribute 'vs-repeat'. This can be used if one wants to override the automatically computed element size.
+    // example:
+    // <div vs-repeat="50"> <!-- the specified element height is 50px -->
+    //      <div ng-repeat="item in someArray">
+    //          <!-- content -->
+    //      </div>
+    // </div>
+    //
+    // IMPORTANT!
+    //
+    // - the vsRepeat directive must be applied to a direct parent of an element with ngRepeat
+    // - the value of vsRepeat attribute is the single element's height/width measured in pixels. If none provided, the directive
+    //      will compute it automatically
+
+    // OPTIONAL PARAMETERS (attributes):
+    // vs-repeat-container="selector" - selector for element containing ng-repeat. (defaults to the current element)
+    // vs-scroll-parent="selector" - selector to the scrollable container. The directive will look for a closest parent matching
+    //                              the given selector (defaults to the current element)
+    // vs-horizontal - stack repeated elements horizontally instead of vertically
+    // vs-offset-before="value" - top/left offset in pixels (defaults to 0)
+    // vs-offset-after="value" - bottom/right offset in pixels (defaults to 0)
+    // vs-excess="value" - an integer number representing the number of elements to be rendered outside of the current container's viewport
+    //                      (defaults to 2)
+    // vs-size - a property name of the items in collection that is a number denoting the element size (in pixels)
+    // vs-autoresize - use this attribute without vs-size and without specifying element's size. The automatically computed element style will
+    //              readjust upon window resize if the size is dependable on the viewport size
+    // vs-scrolled-to-end="callback" - callback will be called when the last item of the list is rendered
+    // vs-scrolled-to-end-offset="integer" - set this number to trigger the scrolledToEnd callback n items before the last gets rendered
+
+    // EVENTS:
+    // - 'vsRepeatTrigger' - an event the directive listens for to manually trigger reinitialization
+    // - 'vsRepeatReinitialized' - an event the directive emits upon reinitialization done
+
+    var dde = document.documentElement,
+        matchingFunction = dde.matches ? 'matches' :
+                            dde.matchesSelector ? 'matchesSelector' :
+                            dde.webkitMatches ? 'webkitMatches' :
+                            dde.webkitMatchesSelector ? 'webkitMatchesSelector' :
+                            dde.msMatches ? 'msMatches' :
+                            dde.msMatchesSelector ? 'msMatchesSelector' :
+                            dde.mozMatches ? 'mozMatches' :
+                            dde.mozMatchesSelector ? 'mozMatchesSelector' : null;
+
+    var closestElement = angular.element.prototype.closest || function (selector) {
+        var el = this[0].parentNode;
+        while (el !== document.documentElement && el != null && !el[matchingFunction](selector)) {
+            el = el.parentNode;
+        }
+
+        if (el && el[matchingFunction](selector)) {
+            return angular.element(el);
+        }
+        else {
+            return angular.element();
+        }
+    };
+
+    function getWindowScroll() {
+        if ('pageYOffset' in window) {
+            return {
+                scrollTop: pageYOffset,
+                scrollLeft: pageXOffset
+            };
+        }
+        else {
+            var sx, sy, d = document, r = d.documentElement, b = d.body;
+            sx = r.scrollLeft || b.scrollLeft || 0;
+            sy = r.scrollTop || b.scrollTop || 0;
+            return {
+                scrollTop: sy,
+                scrollLeft: sx
+            };
+        }
+    }
+
+    function getClientSize(element, sizeProp) {
+        if (element === window) {
+            return sizeProp === 'clientWidth' ? window.innerWidth : window.innerHeight;
+        }
+        else {
+            return element[sizeProp];
+        }
+    }
+
+    function getScrollPos(element, scrollProp) {
+        return element === window ? getWindowScroll()[scrollProp] : element[scrollProp];
+    }
+
+    function getScrollOffset(vsElement, scrollElement, isHorizontal) {
+        var vsPos = vsElement.getBoundingClientRect()[isHorizontal ? 'left' : 'top'];
+        var scrollPos = scrollElement === window ? 0 : scrollElement.getBoundingClientRect()[isHorizontal ? 'left' : 'top'];
+        var correction = vsPos - scrollPos +
+            (scrollElement === window ? getWindowScroll() : scrollElement)[isHorizontal ? 'scrollLeft' : 'scrollTop'];
+
+        return correction;
+    }
+
+    var vsRepeatModule = angular.module('vs-repeat', []).directive('vsRepeat', function($compile, $parse) {
+        return {
+            restrict: 'A',
+            scope: true,
+            compile: function($element, $attrs) {
+                var repeatContainer = angular.isDefined($attrs.vsRepeatContainer) ? angular.element($element[0].querySelector($attrs.vsRepeatContainer)) : $element,
+                    ngRepeatChild = repeatContainer.children().eq(0),
+                    ngRepeatExpression,
+                    childCloneHtml = ngRepeatChild[0].outerHTML,
+                    expressionMatches,
+                    lhs,
+                    rhs,
+                    rhsSuffix,
+                    originalNgRepeatAttr,
+                    collectionName = '$vs_collection',
+                    isNgRepeatStart = false,
+                    attributesDictionary = {
+                        'vsRepeat': 'elementSize',
+                        'vsOffsetBefore': 'offsetBefore',
+                        'vsOffsetAfter': 'offsetAfter',
+                        'vsScrolledToEndOffset': 'scrolledToEndOffset',
+                        'vsExcess': 'excess'
+                    };
+
+                if (ngRepeatChild.attr('ng-repeat')) {
+                    originalNgRepeatAttr = 'ng-repeat';
+                    ngRepeatExpression = ngRepeatChild.attr('ng-repeat');
+                }
+                else if (ngRepeatChild.attr('data-ng-repeat')) {
+                    originalNgRepeatAttr = 'data-ng-repeat';
+                    ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat');
+                }
+                else if (ngRepeatChild.attr('ng-repeat-start')) {
+                    isNgRepeatStart = true;
+                    originalNgRepeatAttr = 'ng-repeat-start';
+                    ngRepeatExpression = ngRepeatChild.attr('ng-repeat-start');
+                }
+                else if (ngRepeatChild.attr('data-ng-repeat-start')) {
+                    isNgRepeatStart = true;
+                    originalNgRepeatAttr = 'data-ng-repeat-start';
+                    ngRepeatExpression = ngRepeatChild.attr('data-ng-repeat-start');
+                }
+                else {
+                    throw new Error('angular-vs-repeat: no ng-repeat directive on a child element');
+                }
+
+                expressionMatches = /^\s*(\S+)\s+in\s+([\S\s]+?)(track\s+by\s+\S+)?$/.exec(ngRepeatExpression);
+                lhs = expressionMatches[1];
+                rhs = expressionMatches[2];
+                rhsSuffix = expressionMatches[3];
+
+                if (isNgRepeatStart) {
+                    var index = 0;
+                    var repeaterElement = repeatContainer.children().eq(0);
+                    while(repeaterElement.attr('ng-repeat-end') == null && repeaterElement.attr('data-ng-repeat-end') == null) {
+                        index++;
+                        repeaterElement = repeatContainer.children().eq(index);
+                        childCloneHtml += repeaterElement[0].outerHTML;
+                    }
+                }
+
+                repeatContainer.empty();
+                return {
+                    pre: function($scope, $element, $attrs) {
+                        var repeatContainer = angular.isDefined($attrs.vsRepeatContainer) ? angular.element($element[0].querySelector($attrs.vsRepeatContainer)) : $element,
+                            childClone = angular.element(childCloneHtml),
+                            childTagName = childClone[0].tagName.toLowerCase(),
+                            originalCollection = [],
+                            originalLength,
+                            $$horizontal = typeof $attrs.vsHorizontal !== 'undefined',
+                            $beforeContent = angular.element('<' + childTagName + ' class="vs-repeat-before-content"></' + childTagName + '>'),
+                            $afterContent = angular.element('<' + childTagName + ' class="vs-repeat-after-content"></' + childTagName + '>'),
+                            autoSize = !$attrs.vsRepeat,
+                            sizesPropertyExists = !!$attrs.vsSize || !!$attrs.vsSizeProperty,
+                            $scrollParent = $attrs.vsScrollParent ?
+                                $attrs.vsScrollParent === 'window' ? angular.element(window) :
+                                closestElement.call(repeatContainer, $attrs.vsScrollParent) : repeatContainer,
+                            $$options = 'vsOptions' in $attrs ? $scope.$eval($attrs.vsOptions) : {},
+                            clientSize = $$horizontal ? 'clientWidth' : 'clientHeight',
+                            offsetSize = $$horizontal ? 'offsetWidth' : 'offsetHeight',
+                            scrollPos = $$horizontal ? 'scrollLeft' : 'scrollTop';
+
+                        $scope.totalSize = 0;
+                        if (!('vsSize' in $attrs) && 'vsSizeProperty' in $attrs) {
+                            console.warn('vs-size-property attribute is deprecated. Please use vs-size attribute which also accepts angular expressions.');
+                        }
+
+                        if ($scrollParent.length === 0) {
+                            throw 'Specified scroll parent selector did not match any element';
+                        }
+                        $scope.$scrollParent = $scrollParent;
+
+                        if (sizesPropertyExists) {
+                            $scope.sizesCumulative = [];
+                        }
+
+                        //initial defaults
+                        $scope.elementSize = (+$attrs.vsRepeat) || getClientSize($scrollParent[0], clientSize) || 50;
+                        $scope.offsetBefore = 0;
+                        $scope.offsetAfter = 0;
+                        $scope.excess = 2;
+
+                        if ($$horizontal) {
+                            $beforeContent.css('height', '100%');
+                            $afterContent.css('height', '100%');
+                        }
+                        else {
+                            $beforeContent.css('width', '100%');
+                            $afterContent.css('width', '100%');
+                        }
+
+                        Object.keys(attributesDictionary).forEach(function(key) {
+                            if ($attrs[key]) {
+                                $attrs.$observe(key, function(value) {
+                                    // '+' serves for getting a number from the string as the attributes are always strings
+                                    $scope[attributesDictionary[key]] = +value;
+                                    reinitialize();
+                                });
+                            }
+                        });
+
+
+                        $scope.$watchCollection(rhs, function(coll) {
+                            originalCollection = coll || [];
+                            refresh();
+                        });
+
+                        function refresh() {
+                            if (!originalCollection || originalCollection.length < 1) {
+                                $scope[collectionName] = [];
+                                originalLength = 0;
+                                $scope.sizesCumulative = [0];
+                            }
+                            else {
+                                originalLength = originalCollection.length;
+                                if (sizesPropertyExists) {
+                                    $scope.sizes = originalCollection.map(function(item) {
+                                        var s = $scope.$new(false);
+                                        angular.extend(s, item);
+                                        s[lhs] = item;
+                                        var size = ($attrs.vsSize || $attrs.vsSizeProperty) ?
+                                                        s.$eval($attrs.vsSize || $attrs.vsSizeProperty) :
+                                                        $scope.elementSize;
+                                        s.$destroy();
+                                        return size;
+                                    });
+                                    var sum = 0;
+                                    $scope.sizesCumulative = $scope.sizes.map(function(size) {
+                                        var res = sum;
+                                        sum += size;
+                                        return res;
+                                    });
+                                    $scope.sizesCumulative.push(sum);
+                                }
+                                else {
+                                    setAutoSize();
+                                }
+                            }
+
+                            reinitialize();
+                        }
+
+                        function setAutoSize() {
+                            if (autoSize) {
+                                $scope.$$postDigest(function() {
+                                    if (repeatContainer[0].offsetHeight || repeatContainer[0].offsetWidth) { // element is visible
+                                        var children = repeatContainer.children(),
+                                            i = 0,
+                                            gotSomething = false,
+                                            insideStartEndSequence = false;
+
+                                        while (i < children.length) {
+                                            if (children[i].attributes[originalNgRepeatAttr] != null || insideStartEndSequence) {
+                                                if (!gotSomething) {
+                                                    $scope.elementSize = 0;
+                                                }
+
+                                                gotSomething = true;
+                                                if (children[i][offsetSize]) {
+                                                    $scope.elementSize += children[i][offsetSize];
+                                                }
+
+                                                if (isNgRepeatStart) {
+                                                    if (children[i].attributes['ng-repeat-end'] != null || children[i].attributes['data-ng-repeat-end'] != null) {
+                                                        break;
+                                                    }
+                                                    else {
+                                                        insideStartEndSequence = true;
+                                                    }
+                                                }
+                                                else {
+                                                    break;
+                                                }
+                                            }
+                                            i++;
+                                        }
+
+                                        if (gotSomething) {
+                                            reinitialize();
+                                            autoSize = false;
+                                            if ($scope.$root && !$scope.$root.$$phase) {
+                                                $scope.$apply();
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        var dereg = $scope.$watch(function() {
+                                            if (repeatContainer[0].offsetHeight || repeatContainer[0].offsetWidth) {
+                                                dereg();
+                                                setAutoSize();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+
+                        function getLayoutProp() {
+                            var layoutPropPrefix = childTagName === 'tr' ? '' : 'min-';
+                            var layoutProp = $$horizontal ? layoutPropPrefix + 'width' : layoutPropPrefix + 'height';
+                            return layoutProp;
+                        }
+
+                        childClone.eq(0).attr(originalNgRepeatAttr, lhs + ' in ' + collectionName + (rhsSuffix ? ' ' + rhsSuffix : ''));
+                        childClone.addClass('vs-repeat-repeated-element');
+
+                        repeatContainer.append($beforeContent);
+                        repeatContainer.append(childClone);
+                        $compile(childClone)($scope);
+                        repeatContainer.append($afterContent);
+
+                        $scope.startIndex = 0;
+                        $scope.endIndex = 0;
+
+                        $scrollParent.on('scroll', function scrollHandler() {
+                            if (updateInnerCollection()) {
+                                $scope.$digest();
+                            }
+                        });
+
+                        function onWindowResize() {
+                            if (typeof $attrs.vsAutoresize !== 'undefined') {
+                                autoSize = true;
+                                setAutoSize();
+                                if ($scope.$root && !$scope.$root.$$phase) {
+                                    $scope.$apply();
+                                }
+                            }
+                            if (updateInnerCollection()) {
+                                $scope.$apply();
+                            }
+                        }
+
+                        angular.element(window).on('resize', onWindowResize);
+                        $scope.$on('$destroy', function() {
+                            angular.element(window).off('resize', onWindowResize);
+                        });
+
+                        $scope.$on('vsRepeatTrigger', refresh);
+
+                        $scope.$on('vsRepeatResize', function() {
+                            autoSize = true;
+                            setAutoSize();
+                        });
+
+                        var _prevStartIndex,
+                            _prevEndIndex,
+                            _minStartIndex,
+                            _maxEndIndex;
+
+                        $scope.$on('vsRenderAll', function() {//e , quantum) {
+                            if($$options.latch) {
+                                setTimeout(function() {
+                                    // var __endIndex = Math.min($scope.endIndex + (quantum || 1), originalLength);
+                                    var __endIndex = originalLength;
+                                    _maxEndIndex = Math.max(__endIndex, _maxEndIndex);
+                                    $scope.endIndex = $$options.latch ? _maxEndIndex : __endIndex;
+                                    $scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
+                                    _prevEndIndex = $scope.endIndex;
+
+                                    $scope.$$postDigest(function() {
+                                        $beforeContent.css(getLayoutProp(), 0);
+                                        $afterContent.css(getLayoutProp(), 0);
+                                    });
+
+                                    $scope.$apply(function() {
+                                        $scope.$emit('vsRenderAllDone');
+                                    });
+                                });
+                            }
+                        });
+
+                        function reinitialize() {
+                            _prevStartIndex = void 0;
+                            _prevEndIndex = void 0;
+                            _minStartIndex = originalLength;
+                            _maxEndIndex = 0;
+                            updateTotalSize(sizesPropertyExists ?
+                                                $scope.sizesCumulative[originalLength] :
+                                                $scope.elementSize * originalLength
+                                            );
+                            updateInnerCollection();
+
+                            $scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
+                        }
+
+                        function updateTotalSize(size) {
+                            $scope.totalSize = $scope.offsetBefore + size + $scope.offsetAfter;
+                        }
+
+                        var _prevClientSize;
+                        function reinitOnClientHeightChange() {
+                            var ch = getClientSize($scrollParent[0], clientSize);
+                            if (ch !== _prevClientSize) {
+                                reinitialize();
+                                if ($scope.$root && !$scope.$root.$$phase) {
+                                    $scope.$apply();
+                                }
+                            }
+                            _prevClientSize = ch;
+                        }
+
+                        $scope.$watch(function() {
+                            if (typeof window.requestAnimationFrame === 'function') {
+                                window.requestAnimationFrame(reinitOnClientHeightChange);
+                            }
+                            else {
+                                reinitOnClientHeightChange();
+                            }
+                        });
+
+                        function updateInnerCollection() {
+                            var $scrollPosition = getScrollPos($scrollParent[0], scrollPos);
+                            var $clientSize = getClientSize($scrollParent[0], clientSize);
+
+                            var scrollOffset = repeatContainer[0] === $scrollParent[0] ? 0 : getScrollOffset(
+                                                    repeatContainer[0],
+                                                    $scrollParent[0],
+                                                    $$horizontal
+                                                );
+
+                            var __startIndex = $scope.startIndex;
+                            var __endIndex = $scope.endIndex;
+
+                            if (sizesPropertyExists) {
+                                __startIndex = 0;
+                                while ($scope.sizesCumulative[__startIndex] < $scrollPosition - $scope.offsetBefore - scrollOffset) {
+                                    __startIndex++;
+                                }
+                                if (__startIndex > 0) { __startIndex--; }
+
+                                // Adjust the start index according to the excess
+                                __startIndex = Math.max(
+                                    Math.floor(__startIndex - $scope.excess / 2),
+                                    0
+                                );
+
+                                __endIndex = __startIndex;
+                                while ($scope.sizesCumulative[__endIndex] < $scrollPosition - $scope.offsetBefore - scrollOffset + $clientSize) {
+                                    __endIndex++;
+                                }
+
+                                // Adjust the end index according to the excess
+                                __endIndex = Math.min(
+                                    Math.ceil(__endIndex + $scope.excess / 2),
+                                    originalLength
+                                );
+                            }
+                            else {
+                                __startIndex = Math.max(
+                                    Math.floor(
+                                        ($scrollPosition - $scope.offsetBefore - scrollOffset) / $scope.elementSize
+                                    ) - $scope.excess / 2,
+                                    0
+                                );
+
+                                __endIndex = Math.min(
+                                    __startIndex + Math.ceil(
+                                        $clientSize / $scope.elementSize
+                                    ) + $scope.excess,
+                                    originalLength
+                                );
+                            }
+
+                            _minStartIndex = Math.min(__startIndex, _minStartIndex);
+                            _maxEndIndex = Math.max(__endIndex, _maxEndIndex);
+
+                            $scope.startIndex = $$options.latch ? _minStartIndex : __startIndex;
+                            $scope.endIndex = $$options.latch ? _maxEndIndex : __endIndex;
+
+                            var digestRequired = false;
+                            if (_prevStartIndex == null) {
+                                digestRequired = true;
+                            }
+                            else if (_prevEndIndex == null) {
+                                digestRequired = true;
+                            }
+
+                            if (!digestRequired) {
+                                if ($$options.hunked) {
+                                    if (Math.abs($scope.startIndex - _prevStartIndex) >= $scope.excess / 2 ||
+                                        ($scope.startIndex === 0 && _prevStartIndex !== 0)) {
+                                        digestRequired = true;
+                                    }
+                                    else if (Math.abs($scope.endIndex - _prevEndIndex) >= $scope.excess / 2 ||
+                                        ($scope.endIndex === originalLength && _prevEndIndex !== originalLength)) {
+                                        digestRequired = true;
+                                    }
+                                }
+                                else {
+                                    digestRequired = $scope.startIndex !== _prevStartIndex ||
+                                                        $scope.endIndex !== _prevEndIndex;
+                                }
+                            }
+
+                            if (digestRequired) {
+                                $scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
+
+                                // Emit the event
+                                $scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
+
+                                if ($attrs.vsScrolledToEnd) {
+                                    var triggerIndex = originalCollection.length - ($scope.scrolledToEndOffset || 0);
+                                    if (($scope.endIndex >= triggerIndex && _prevEndIndex < triggerIndex) || (originalCollection.length && $scope.endIndex === originalCollection.length)) {
+                                        $scope.$eval($attrs.vsScrolledToEnd);
+                                    }
+                                }
+
+                                _prevStartIndex = $scope.startIndex;
+                                _prevEndIndex = $scope.endIndex;
+
+                                var offsetCalculationString = sizesPropertyExists ?
+                                    '(sizesCumulative[$index + startIndex] + offsetBefore)' :
+                                    '(($index + startIndex) * elementSize + offsetBefore)';
+
+                                var parsed = $parse(offsetCalculationString);
+                                var o1 = parsed($scope, {$index: 0});
+                                var o2 = parsed($scope, {$index: $scope[collectionName].length});
+                                var total = $scope.totalSize;
+
+                                $beforeContent.css(getLayoutProp(), o1 + 'px');
+                                $afterContent.css(getLayoutProp(), (total - o2) + 'px');
+                            }
+
+                            return digestRequired;
+                        }
+                    }
+                };
+            }
+        };
+    });
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = vsRepeatModule.name;
+    }
+})(window, window.angular);
+
 (function () {
     'use strict';
 
@@ -1155,13 +1814,21 @@
         mdtPaginationHelper.prototype.calculateVisibleRows = function () {
             var that = this;
 
-            _.each(this.tableDataStorageService.storage, function (rowData, index) {
-                if (index >= that.getStartRowIndex() && index <= that.getEndRowIndex()) {
-                    rowData.optionList.visible = true;
-                } else {
-                    rowData.optionList.visible = false;
-                }
-            });
+            var startRowIndex = that.getStartRowIndex();
+            var endRowIndex = that.getEndRowIndex();
+            for (var index = 0; index < that.tableDataStorageService.storage.length; index++) {
+                // var rowData = this.tableDataStorageService.storage[index];
+                // that.tableDataStorageService.storage[index];
+                that.tableDataStorageService.storage[index].optionList.visible = !!(index >= startRowIndex && index <= endRowIndex);
+
+            }
+            // _.each(this.tableDataStorageService.storage, function (rowData, index) {
+            //     if (index >= that.getStartRowIndex() && index <= that.getEndRowIndex()) {
+            //         rowData.optionList.visible = true;
+            //     } else {
+            //         rowData.optionList.visible = false;
+            //     }
+            // });
         };
 
         mdtPaginationHelper.prototype.getStartRowIndex = function () {
@@ -1239,19 +1906,6 @@
 (function(){
     'use strict';
 
-    var ColumnOptionProvider = {
-        ALIGN_RULE : {
-            ALIGN_LEFT: 'left',
-            ALIGN_RIGHT: 'right'
-        }
-    };
-
-    angular.module('material.components.table')
-        .value('ColumnOptionProvider', ColumnOptionProvider);
-})();
-(function(){
-    'use strict';
-
     function ColumnAlignmentHelper(ColumnOptionProvider){
         var service = this;
         service.getColumnAlignClass = getColumnAlignClass;
@@ -1269,6 +1923,19 @@
         .module('material.components.table')
         .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
 }());
+(function(){
+    'use strict';
+
+    var ColumnOptionProvider = {
+        ALIGN_RULE : {
+            ALIGN_LEFT: 'left',
+            ALIGN_RIGHT: 'right'
+        }
+    };
+
+    angular.module('material.components.table')
+        .value('ColumnOptionProvider', ColumnOptionProvider);
+})();
 (function () {
     'use strict';
 
@@ -1752,11 +2419,10 @@
         .module('material.components.table')
         .directive('mdtCardHeader', mdtCardHeaderDirective);
 }());
-angular.module("mdtTemplates", []).run(function($templateCache) {$templateCache.put("/main/templates/1.html","<md-content flex=\"\" class=\"mdtTable md-whiteframe-z1 ng-isolate-scope layout-column flex\" layout=\"column\" style=\"box-shadow: none;\" ng-class=\"{\'invisible\': !tableIsReady}\" ng-if=\"treeIsInitialised\" mdt-model=\"model\" mdt-select-fn=\"onSelect(rowData)\" mdt-empty-title=\"emptyTitle\" ng-hide=\"loading() &amp;&amp; !model.data.length\" mdt-dblclick-fn=\"openFile(rowData)\" menu-list=\"contextMenuList\" on-menu-selected=\"onContextMenuSelected(menuItem)\" on-popup=\"onContextMenuPopup()\" sortable-columns=\"\'true\'\" aria-hidden=\"false\">\n    <md-content ng-hide=\"mdtPaginationHelper.getRows().length\" flex=\"\" layout=\"column\" layout-align=\"center center\" class=\"layout-align-center-center layout-column flex ng-hide\" aria-hidden=\"true\" style=\"\">\n        <span class=\"md-subhead ng-binding\" ng-bind=\"mdtEmptyTitle\"></span>\n    </md-content>\n    <div id=\"visible-header\" layout=\"row\" class=\"row-header layout-row\" style=\"display: block;\" ng-show=\"mdtPaginationHelper.getRows().length\" aria-hidden=\"false\">\n        <!--<md-list-item >-->\n        <!--<div layout=\"row\"  mdt-animate-sort-icon-handler flex>-->\n        <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div flex-order=\"1\" ng-style=\"headerRowData.style\" class=\"th ng-scope ng-isolate-scope leftAlignedColumn md-ink-ripple flex-order-1 flex\" mdt-add-align-class=\"headerRowData.alignRule\" mdt-sort-handler=\"\" md-ink-ripple=\"\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" style=\"min-width: 100px;\">\n        <div>\n            <!-- ngIf: sortableColumns --><div layout=\"row\" ng-if=\"sortableColumns\" style=\"display: inline-block;\" class=\"ng-scope layout-row\">\n\n\n        <span ng-show=\"headerRowData.alignRule == \'right\'\" aria-hidden=\"true\" class=\"ng-hide\">\n            <!-- ngIf: !isSorted() --><span class=\"hoverSortIcons ng-scope\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\"><path d=\"M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z\"></path></svg></ng-md-icon>\n            </span><!-- end ngIf: !isSorted() -->\n\n            <!-- ngIf: isSorted() -->\n        </span>\n\n        <span class=\"ng-binding\">\n            Name\n        </span>\n\n        <span ng-show=\"headerRowData.alignRule == \'left\'\" aria-hidden=\"false\" class=\"\">\n            <!-- ngIf: !isSorted() --><span class=\"hoverSortIcons ng-scope\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\"><path d=\"M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z\"></path></svg></ng-md-icon>\n            </span><!-- end ngIf: !isSorted() -->\n\n            <!-- ngIf: isSorted() -->\n        </span>\n        </div><!-- end ngIf: sortableColumns -->\n            <!-- ngIf: !sortableColumns -->\n        </div>\n    </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div flex-order=\"1\" ng-style=\"headerRowData.style\" class=\"th ng-scope ng-isolate-scope leftAlignedColumn md-ink-ripple flex-order-1 flex-1 hide-xs hide-md hide-sm\" mdt-add-align-class=\"headerRowData.alignRule\" mdt-sort-handler=\"\" md-ink-ripple=\"\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\n        <div>\n            <!-- ngIf: sortableColumns --><div layout=\"row\" ng-if=\"sortableColumns\" style=\"display: inline-block;\" class=\"ng-scope layout-row\">\n\n\n        <span ng-show=\"headerRowData.alignRule == \'right\'\" aria-hidden=\"true\" class=\"ng-hide\">\n            <!-- ngIf: !isSorted() --><span class=\"hoverSortIcons ng-scope\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\"><path d=\"M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z\"></path></svg></ng-md-icon>\n            </span><!-- end ngIf: !isSorted() -->\n\n            <!-- ngIf: isSorted() -->\n        </span>\n\n        <span class=\"ng-binding\">\n            Created by\n        </span>\n\n        <span ng-show=\"headerRowData.alignRule == \'left\'\" aria-hidden=\"false\" class=\"\">\n            <!-- ngIf: !isSorted() --><span class=\"hoverSortIcons ng-scope\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\"><path d=\"M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z\"></path></svg></ng-md-icon>\n            </span><!-- end ngIf: !isSorted() -->\n\n            <!-- ngIf: isSorted() -->\n        </span>\n        </div><!-- end ngIf: sortableColumns -->\n            <!-- ngIf: !sortableColumns -->\n        </div>\n    </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n        <!--</div>-->\n    </div>\n    <md-content class=\"data-container layout-column flex\" flex=\"\" layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" aria-hidden=\"false\" style=\"\">\n        <md-list flex=\"\" mtd-context-menu=\"\" menu-list=\"menuList\" on-menu-selected=\"onMenuSelected(menuItem)\" on-popup=\"onPopup()\" role=\"list\" class=\"ng-isolate-scope flex\">\n            <!-- ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">folder</i><span class=\"principal-title\">OSHA</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">—</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">folder</i><span class=\"principal-title\">Packaging</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">—</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">folder</i><span class=\"principal-title\">Processing</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">—</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">folder</i><span class=\"principal-title\">Sanitation</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">—</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">folder</i><span class=\"principal-title\">Warehouse</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">—</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">0AFF5D15-413F-4959-90F8-C3AFBC63F6F7-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope selectedRow\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\" style=\"\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">181F4D4F-416B-4809-89FA-98E09E310489-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">2DD7E7AB-DE99-4B14-ADB6-52460AC092EC-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">76489882-FA6C-4AE8-B5E0-304BE5357433-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">76973718-B9CB-4132-B9FB-8B17C0F41B8D-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">91AACB2C-8F85-425B-A73D-AD86613C666A-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">9D681466-0143-448E-A88D-AB516F60EE18-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">C247F639-0495-4080-9C4C-E26D508EDA32-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">F53082EB-D1D9-4063-A5CB-FF0D2D0EB80D-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index --><md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\" class=\"row-container md-no-proxy ng-scope\" ng-class=\"{\'selectedRow\': rowData.optionList.selected}\" on-long-press=\"mdtPaginationHelper.selectRow(rowData)\" ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\" mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\" role=\"listitem\" tabindex=\"0\">\n            <!-- ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-0 flex\" flex-order=\"0\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\" style=\"min-width: 100px;\">\n            <!-- ngSwitchWhen: html --><span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\" class=\"ng-scope ng-isolate-scope\"><i id=\"picon\" class=\"md-avatar material-icons\">description</i><span class=\"principal-title\">FC9171EB-0449-4657-8968-0DF8953F2C38-e3dccb89-8558-462b-aacb-0b859cc76a49</span></span><!-- end ngSwitchWhen: -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index --><div class=\"td ng-scope flex-order-1 flex-1 hide-xs hide-md hide-sm\" flex-order=\"1\" ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\" ng-switch=\"headerRowData.type\" ng-style=\"headerRowData.style\">\n            <!-- ngSwitchWhen: html -->\n            <!-- ngSwitchWhen: date -->\n            <!-- ngSwitchDefault:  --><span ng-switch-default=\"\" class=\"ng-binding ng-scope\">Administrator Administrator</span><!-- end ngSwitchWhen: -->\n\n        </div><!-- end ngRepeat: headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index -->\n\n        </md-list-item><!-- end ngRepeat: rowData in mdtPaginationHelper.getRows() track by $index -->\n        </md-list>\n    </md-content>\n\n\n    <!-- table card -->\n    <div class=\"mdt-footer ng-hide layout-row\" layout=\"row\" ng-show=\"isPaginationEnabled()\" aria-hidden=\"true\">\n        <div class=\"mdt-pagination layout-align-end-center layout-row flex\" layout=\"row\" layout-align=\"end center\" flex=\"\">\n\n            <span layout-margin=\"\" class=\"layout-margin\">Rows per page:</span>\n            <md-input-container class=\"md-input-has-value\">\n                <md-select ng-model=\"rowsPerPage\" aria-label=\"rows per page: 10\" class=\"ng-pristine ng-untouched ng-valid\" tabindex=\"0\" aria-disabled=\"false\" role=\"listbox\" aria-expanded=\"false\" aria-multiselectable=\"false\" id=\"select_8\" aria-owns=\"select_container_9\" aria-invalid=\"false\"><md-select-value class=\"md-select-value\" id=\"select_value_label_4\"><span><div class=\"md-text ng-binding\">10</div></span><span class=\"md-select-icon\" aria-hidden=\"true\"></span></md-select-value><div class=\"md-select-menu-container\" aria-hidden=\"true\" id=\"select_container_9\"><md-select-menu class=\"ng-scope\"><md-content>\n                    <!-- ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues --><md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\" tabindex=\"0\" class=\"ng-scope md-ink-ripple\" role=\"option\" aria-selected=\"true\" id=\"select_option_10\" value=\"10\" selected=\"selected\"><div class=\"md-text ng-binding\">10</div></md-option><!-- end ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues --><md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\" tabindex=\"0\" class=\"ng-scope md-ink-ripple\" role=\"option\" aria-selected=\"false\" id=\"select_option_11\" value=\"20\"><div class=\"md-text ng-binding\">20</div></md-option><!-- end ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues --><md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\" tabindex=\"0\" class=\"ng-scope md-ink-ripple\" role=\"option\" aria-selected=\"false\" id=\"select_option_12\" value=\"30\"><div class=\"md-text ng-binding\">30</div></md-option><!-- end ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues --><md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\" tabindex=\"0\" class=\"ng-scope md-ink-ripple\" role=\"option\" aria-selected=\"false\" id=\"select_option_13\" value=\"50\"><div class=\"md-text ng-binding\">50</div></md-option><!-- end ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues --><md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\" tabindex=\"0\" class=\"ng-scope md-ink-ripple\" role=\"option\" aria-selected=\"false\" id=\"select_option_14\" value=\"100\"><div class=\"md-text ng-binding\">100</div></md-option><!-- end ngRepeat: pageSize in mdtPaginationHelper.rowsPerPageValues -->\n                </md-content></md-select-menu></div></md-select>\n            </md-input-container>\n\n        <span layout-margin=\"\" class=\"layout-margin ng-binding\">\n            1-10 of 15\n        </span>\n\n            <button class=\"md-icon-button md-primary md-button md-ink-ripple\" type=\"button\" ng-transclude=\"\" aria-label=\"Previous page\" ng-click=\"mdtPaginationHelper.previousPage()\">\n                <ng-md-icon icon=\"keyboard_arrow_left\" size=\"24\" class=\"ng-scope\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z\"></path></svg></ng-md-icon>\n            </button>\n\n            <button class=\"md-icon-button md-primary md-button md-ink-ripple\" type=\"button\" ng-transclude=\"\" aria-label=\"Next page\" ng-click=\"mdtPaginationHelper.nextPage()\">\n                <ng-md-icon icon=\"keyboard_arrow_right\" size=\"24\" class=\"ng-scope\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z\"></path></svg></ng-md-icon>\n            </button>\n        </div>\n    </div>\n    <!-- table card end -->\n</md-content>");
-$templateCache.put("/main/templates/mdtAlternateHeaders.html","<div class=\"mdt-header-alternate\" layout=\"row\" layout-align=\"start center\">\n    <span class=\"alternate-text\" flex>{{tableDataStorageService.getNumberOfSelectedRows()}} item selected</span>\n    <md-button class=\"md-icon-button md-primary\" ng-click=\"deleteSelectedRows()\" aria-label=\"Delete selected rows\">\n        <ng-md-icon icon=\"delete\" size=\"24\"></ng-md-icon>\n    </md-button>\n\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\n    </md-button>\n</div>");
+angular.module("mdtTemplates", []).run(function($templateCache) {$templateCache.put("/main/templates/mdtAlternateHeaders.html","<div class=\"mdt-header-alternate\" layout=\"row\" layout-align=\"start center\">\n    <span class=\"alternate-text\" flex>{{tableDataStorageService.getNumberOfSelectedRows()}} item selected</span>\n    <md-button class=\"md-icon-button md-primary\" ng-click=\"deleteSelectedRows()\" aria-label=\"Delete selected rows\">\n        <ng-md-icon icon=\"delete\" size=\"24\"></ng-md-icon>\n    </md-button>\n\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\n    </md-button>\n</div>");
 $templateCache.put("/main/templates/mdtCardFooter.html","<div class=\"mdt-footer\" layout=\"row\" ng-show=\"isPaginationEnabled()\">\n    <div class=\"mdt-pagination\"\n         layout=\"row\"\n         layout-align=\"end center\"\n         flex>\n\n        <span layout-margin>Rows per page:</span>\n        <md-input-container>\n            <md-select ng-model=\"rowsPerPage\" aria-label=\"rows per page\">\n                <md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\">{{pageSize}}</md-option>\n            </md-select>\n        </md-input-container>\n\n        <span layout-margin>\n            {{mdtPaginationHelper.getStartRowIndex()+1}}-{{mdtPaginationHelper.getEndRowIndex()+1}} of {{mdtPaginationHelper.getTotalRowsCount()}}\n        </span>\n\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Previous page\" ng-click=\"mdtPaginationHelper.previousPage()\">\n            <ng-md-icon icon=\"keyboard_arrow_left\" size=\"24\"></ng-md-icon>\n        </md-button>\n\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Next page\" ng-click=\"mdtPaginationHelper.nextPage()\">\n            <ng-md-icon icon=\"keyboard_arrow_right\" size=\"24\"></ng-md-icon>\n        </md-button>\n    </div>\n</div>");
 $templateCache.put("/main/templates/mdtCardHeader.html","<div class=\"mdt-header\" layout=\"row\" layout-align=\"start center\" ng-show=\"isTableCardEnabled\">\n    <span flex>{{tableCard.title}}</span>\n<!--\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"Filter\">\n        <ng-md-icon icon=\"filter_list\" size=\"24\"></ng-md-icon>\n    </md-button>\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\n    </md-button>\n-->\n</div>");
 $templateCache.put("/main/templates/mdtDropdown.html","<md-whiteframe class=\"md-whiteframe-z1\" layout=\"column\">\n  <md-button ng-if=\"menuItem.enabled\" class=\"mdt-dropdown-menu-item\" ng-repeat=\"menuItem in menuList\" ng-click=\"onMenuSelected(menuItem)\" layout=\"row\" aria-label=\"{{::menuItem.name}}\">\n    <md-icon md-font-icon=\"material-icons\">{{::menuItem.icon}}</md-icon> <span class=\"name\" ng-bind=\"::menuItem.name\"></span>\n  </md-button>\n</md-whiteframe>\n");
 $templateCache.put("/main/templates/mdtGeneratedHeaderCellContent.html","<div>\n    <div layout=\"row\" ng-if=\"sortableColumns\" style=\"display: inline-block;\">\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\n\n        <span ng-show=\"headerRowData.alignRule == \'right\'\">\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n        </span>\n\n        <span>\n            {{headerRowData.columnName}}\n        </span>\n\n        <span ng-show=\"headerRowData.alignRule == \'left\'\">\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n        </span>\n    </div>\n    <div ng-if=\"!sortableColumns\">\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\n\n        <span>\n            {{headerRowData.columnName}}\n        </span>\n    </div>\n</div>");
 $templateCache.put("/main/templates/mdtTable.bk.html","<div class=\"mdtTable flex\">\n    <md-content class=\"data-container layout-column flex\">\n        <!--\n         flex mtd-context-menu\n                 menu-list=\"menuList\"\n                 on-menu-selected=\"onMenuSelected(menuItem)\"\n                 on-popup=\"onPopup()\"\n        -->\n        <md-list class=\"flex\">\n            <!--\n                                      on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\n                          ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\n                          mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\"\n            -->\n            <md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\"\n                          class=\"row-container\"\n                          ng-class=\"{\'selectedRow\': rowData.optionList.selected}\">\n                <div class=\"td\"\n                     flex-order=\"{{$index}}\"\n\n                     ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\"\n                     ng-class=\"headerRowData.class\"\n                     ng-switch=\"headerRowData.type\"\n                     ng-style=\"headerRowData.style\">\n                    <span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\"></span>\n                    <span ng-switch-when=\"date\">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:\'MMM dd, yyyy\' | ifEmpty:\'&#8212\'}}</span>\n                    <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:\'&#8212\'}}</span>\n\n                </div>\n\n                </div>\n\n            </md-list-item>\n        </md-list>\n    </md-content>\n    <!--<md-content ng-hide=\"mdtPaginationHelper.getRows().length\" flex layout=\"column\" layout-align=\"center center\">-->\n        <!--<span class=\"md-subhead\" ng-bind=\"mdtEmptyTitle\"></span>-->\n    <!--</md-content>-->\n    <!--<div id=\"visible-header\" layout=\"row\" class=\"row-header\" style=\"display: block\" ng-show=\"mdtPaginationHelper.getRows().length\">\n        &lt;!&ndash;<md-list-item >&ndash;&gt;\n        &lt;!&ndash;<div layout=\"row\"  mdt-animate-sort-icon-handler flex>&ndash;&gt;\n            <div flex-order=\"1\"\n                 ng-style=\"headerRowData.style\"\n                 class=\"th\"\n                 mdt-add-align-class=\"headerRowData.alignRule\"\n                 mdt-sort-handler\n                 md-ink-ripple=\"{{rippleEffect}}\"\n                 ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\n                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>\n            </div>\n        &lt;!&ndash;</div>&ndash;&gt;\n    </div>-->\n\n\n\n    <!-- table card -->\n    <!--<mdt-card-footer></mdt-card-footer>-->\n    <!-- table card end -->\n</div>");
-$templateCache.put("/main/templates/mdtTable.html","<md-content flex class=\"mdtTable md-whiteframe-z1\" layout=\"column\" style=\"box-shadow: none;\"  ng-cloak>\n    <md-content ng-hide=\"mdtPaginationHelper.getRows().length\" flex layout=\"column\" layout-align=\"center center\">\n        <span class=\"md-subhead\" ng-bind=\"mdtEmptyTitle\"></span>\n    </md-content>\n    <div id=\"visible-header\" class=\"row-header\" style=\"display: block\" ng-show=\"mdtPaginationHelper.getRows().length\">\n        <div layout=\"row\" mdt-animate-sort-icon-handler flex>\n            <div flex-order=\"1\"\n                 ng-style=\"headerRowData.style\"\n                 class=\"th\"\n                 mdt-add-align-class=\"headerRowData.alignRule\"\n                 mdt-sort-handler\n                 md-ink-ripple=\"{{rippleEffect}}\"\n                 ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\n                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>\n            </div>\n        </div>\n    </div>\n    <md-content class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" ng-class=\"{\'invisible\': !tableIsReady}\">\n        <md-list flex mtd-context-menu\n                 menu-list=\"menuList\"\n                 on-menu-selected=\"onMenuSelected(menuItem)\"\n                 on-popup=\"onPopup()\">\n            <md-virtual-repeat-container style=\"top:0;bottom:0;left:0;right:0;position: absolute\">\n            <md-list-item md-virtual-repeat=\"rowData in mdtPaginationHelper.getRows()\"\n                          class=\"row-container\"\n                          ng-class=\"{\'selectedRow\': rowData.optionList.selected}\"\n                          ng-click=\"mdtPaginationHelper.selectRow(rowData)\"\n                          on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\n                          ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\n                          mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\">\n                <div class=\"td\"\n                     ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\"\n                     ng-class=\"headerRowData.class\"\n                     ng-switch=\"headerRowData.type\"\n                     ng-style=\"headerRowData.style\">\n\n                    <div class=\"first-column-section\">\n                        <span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\"></span>\n                        <span ng-switch-when=\"date\">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:\'MMM dd, yyyy\' | ifEmpty:\'&#8212\'}}</span>\n                        <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:\'&#8212\'}}</span>\n                    </div>\n                    <div ng-if=\"headerRowData.secondColumn\" class=\"second-column-section\" ng-class=\"headerRowData.secondColumn.class\" ng-switch=\"headerRowData.secondColumn.type\">\n                        <span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.secondColumn.content(rowData)\"></span>\n                        <span ng-switch-when=\"date\">{{headerRowData.secondColumn.content(rowData) | date:\'MMM dd, yyyy\' | ifEmpty:\'&#8212\'}}</span>\n                        <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:\'&#8212\'}}</span>\n                    </div>\n                </div>\n            </md-list-item>\n            </md-virtual-repeat-container>\n        </md-list>\n    </md-content>\n\n\n    <!-- table card -->\n    <mdt-card-footer></mdt-card-footer>\n    <!-- table card end -->\n</md-content>");});
+$templateCache.put("/main/templates/mdtTable.html","<md-content flex class=\"mdtTable md-whiteframe-z1\" layout=\"column\" style=\"box-shadow: none;\" ng-cloak ng-class=\"{\'invisible\': !tableIsReady}\">\n    <md-content ng-hide=\"mdtPaginationHelper.getRows().length\" flex layout=\"column\" layout-align=\"center center\">\n        <span class=\"md-subhead\" ng-bind=\"mdtEmptyTitle\"></span>\n    </md-content>\n    <div id=\"visible-header\" class=\"row-header\" style=\"display: block\" ng-show=\"mdtPaginationHelper.getRows().length\">\n        <div layout=\"row\" mdt-animate-sort-icon-handler flex>\n            <div flex-order=\"1\"\n                 ng-style=\"headerRowData.style\"\n                 class=\"th\"\n                 mdt-add-align-class=\"headerRowData.alignRule\"\n                 mdt-sort-handler\n                 md-ink-ripple=\"{{rippleEffect}}\"\n                 ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\n                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>\n            </div>\n        </div>\n    </div>\n    <div class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" vs-repeat vs-scroll-parent=\"\">\n        <md-list flex mtd-context-menu\n                 menu-list=\"menuList\"\n                 on-menu-selected=\"onMenuSelected(menuItem)\"\n                 on-popup=\"onPopup()\">\n            <!--<div vs-repeat style=\"width: 100%;height: 100%\">-->\n                <!--<md-virtual-repeat-container style=\"top:0;bottom:0;left:0;right:0;position: absolute\"> md-on-demand=\"true\" md-item-size=\"49\"-->\n            <md-list-item ng-repeat=\"rowData in mdtPaginationHelper.getRows() track by $index\"\n                              class=\"row-container\"\n                              ng-class=\"{\'selectedRow\': rowData.optionList.selected}\"\n                              ng-click=\"mdtPaginationHelper.selectRow(rowData)\"\n                              on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\n                              ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\n                              mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\">\n                    <div class=\"td\"\n                         ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\"\n                         ng-class=\"headerRowData.class\"\n                         ng-switch=\"headerRowData.type\"\n                         ng-style=\"headerRowData.style\">\n\n                        <div class=\"first-column-section\">\n                            <span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.content(rowData)\"></span>\n                            <span ng-switch-when=\"date\">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:\'MMM dd, yyyy\' | ifEmpty:\'&#8212\'}}</span>\n                            <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:\'&#8212\'}}</span>\n                        </div>\n                        <div ng-if=\"headerRowData.secondColumn\" class=\"second-column-section\" ng-class=\"headerRowData.secondColumn.class\" ng-switch=\"headerRowData.secondColumn.type\">\n                            <span ng-switch-when=\"html\" mdt-add-html-content-to-cell=\"headerRowData.secondColumn.content(rowData)\"></span>\n                            <span ng-switch-when=\"date\">{{headerRowData.secondColumn.content(rowData) | date:\'MMM dd, yyyy\' | ifEmpty:\'&#8212\'}}</span>\n                            <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:\'&#8212\'}}</span>\n                        </div>\n                    </div>\n                </md-list-item>\n            <!--</div>-->\n            <!--</md-virtual-repeat-container>-->\n        </md-list>\n    </div>\n\n\n    <!-- table card -->\n    <mdt-card-footer></mdt-card-footer>\n    <!-- table card end -->\n</md-content>");});

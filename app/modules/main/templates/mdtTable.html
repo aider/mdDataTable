@@ -1,4 +1,4 @@
-<md-content flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;"  ng-cloak>
+<md-content flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;" ng-cloak ng-class="{'invisible': !tableIsReady}">
     <md-content ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
     </md-content>
@@ -15,40 +15,42 @@
             </div>
         </div>
     </div>
-    <md-content class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" ng-class="{'invisible': !tableIsReady}">
+    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" vs-repeat vs-scroll-parent="">
         <md-list flex mtd-context-menu
                  menu-list="menuList"
                  on-menu-selected="onMenuSelected(menuItem)"
                  on-popup="onPopup()">
-            <md-virtual-repeat-container style="top:0;bottom:0;left:0;right:0;position: absolute">
-            <md-list-item md-virtual-repeat="rowData in mdtPaginationHelper.getRows()"
-                          class="row-container"
-                          ng-class="{'selectedRow': rowData.optionList.selected}"
-                          ng-click="mdtPaginationHelper.selectRow(rowData)"
-                          on-long-press="mdtPaginationHelper.selectRow(rowData)"
-                          ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
-                          mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
-                <div class="td"
-                     ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
-                     ng-class="headerRowData.class"
-                     ng-switch="headerRowData.type"
-                     ng-style="headerRowData.style">
+            <!--<div vs-repeat style="width: 100%;height: 100%">-->
+                <!--<md-virtual-repeat-container style="top:0;bottom:0;left:0;right:0;position: absolute"> md-on-demand="true" md-item-size="49"-->
+            <md-list-item ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
+                              class="row-container"
+                              ng-class="{'selectedRow': rowData.optionList.selected}"
+                              ng-click="mdtPaginationHelper.selectRow(rowData)"
+                              on-long-press="mdtPaginationHelper.selectRow(rowData)"
+                              ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
+                              mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
+                    <div class="td"
+                         ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
+                         ng-class="headerRowData.class"
+                         ng-switch="headerRowData.type"
+                         ng-style="headerRowData.style">
 
-                    <div class="first-column-section">
-                        <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
-                        <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                        <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
+                        <div class="first-column-section">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
+                            <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
+                        </div>
+                        <div ng-if="headerRowData.secondColumn" class="second-column-section" ng-class="headerRowData.secondColumn.class" ng-switch="headerRowData.secondColumn.type">
+                            <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
+                            <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:'&#8212'}}</span>
+                        </div>
                     </div>
-                    <div ng-if="headerRowData.secondColumn" class="second-column-section" ng-class="headerRowData.secondColumn.class" ng-switch="headerRowData.secondColumn.type">
-                        <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
-                        <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
-                        <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:'&#8212'}}</span>
-                    </div>
-                </div>
-            </md-list-item>
-            </md-virtual-repeat-container>
+                </md-list-item>
+            <!--</div>-->
+            <!--</md-virtual-repeat-container>-->
         </md-list>
-    </md-content>
+    </div>
 
 
     <!-- table card -->

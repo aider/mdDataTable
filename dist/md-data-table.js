@@ -440,12 +440,14 @@
                     $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         $scope.$watchCollection('mdtModel.data', function (data) {
-                            if (data && data.length) {
-                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
-                                $scope.dynamicItems = new DynamicItems();
+                            if(data) {
                                 $timeout(function () {
                                     $scope.tableIsReady = true;
                                 }, 500);
+                            }
+                            if (data && data.length) {
+                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                $scope.dynamicItems = new DynamicItems();
                                 if ($scope.mdtPaginationHelper.getRows().length) {
                                     // $scope.tableIsReady = false;
                                     // $scope.tableDataIsReady = false;

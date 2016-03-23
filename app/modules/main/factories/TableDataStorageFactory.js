@@ -115,8 +115,8 @@
                 $log.error('`isSelected` parameter is required');
                 return;
             }
-
-            _.each(this.storage, function (rowData) {
+            for (var i = 0; i < this.storage.length; i++) {
+                var rowData = this.storage[i];
                 if (isPaginationEnabled) {
                     if (rowData.optionList.visible) {
                         rowData.optionList.selected = isSelected ? true : false;
@@ -124,7 +124,8 @@
                 } else {
                     rowData.optionList.selected = isSelected ? true : false;
                 }
-            });
+
+            }
         };
 
         TableDataStorageService.prototype.reverseRows = function () {

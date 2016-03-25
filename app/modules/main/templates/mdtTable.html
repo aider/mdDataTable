@@ -28,6 +28,7 @@
                               ng-click="mdtPaginationHelper.selectRow(rowData)"
                               on-long-press="mdtPaginationHelper.selectRow(rowData)"
                               ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
+                          aria-label="{{$index}}"
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
                     <div class="td"
                          ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"

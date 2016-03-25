@@ -209,5 +209,5 @@
 
     angular
         .module('material.components.table')
-        .factory('TableDataStorageFactory', TableDataStorageFactory);
+        .factory('TableDataStorageFactory', ['$log', TableDataStorageFactory]);
 }());

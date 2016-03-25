@@ -65,5 +65,5 @@
 
     angular
         .module('material.components.table')
-        .directive('mdtCell', mdtCellDirective);
+        .directive('mdtCell', ['$parse', '$compile',mdtCellDirective]);
 }());

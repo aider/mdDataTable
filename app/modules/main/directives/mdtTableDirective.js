@@ -117,7 +117,7 @@
                 mdtMenuSelected: "&onMenuSelected",
                 onPopup: "&"
             },
-            controller: function ($scope) {
+            controller: ['$scope',function ($scope) {
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
@@ -232,7 +232,7 @@
                 }
 
 
-            },
+            }],
             link: function ($scope, element, attrs, ctrl, transclude) {
                 injectContentIntoTemplate();
 

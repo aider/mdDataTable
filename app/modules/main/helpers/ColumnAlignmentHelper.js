@@ -16,5 +16,5 @@
 
     angular
         .module('material.components.table')
-        .service('ColumnAlignmentHelper', ColumnAlignmentHelper);
+        .service('ColumnAlignmentHelper', ['ColumnOptionProvider', ColumnAlignmentHelper]);
 }());

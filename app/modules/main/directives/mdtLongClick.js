@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    function onLongPress($timeout) {
+    function onLongPress() {
         return {
             restrict: 'A',
             link: function ($scope, $elm, $attrs) {

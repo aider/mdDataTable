@@ -4,7 +4,7 @@
     </md-content>
     <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length">
         <div layout="row" mdt-animate-sort-icon-handler flex>
-            <div flex-order="1"
+            <div
                  ng-style="headerRowData.style"
                  class="th"
                  mdt-add-align-class="headerRowData.alignRule"
@@ -13,6 +13,7 @@
                  ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
                 <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
             </div>
+            <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></div>
         </div>
     </div>
     <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" vs-repeat vs-scroll-parent="">

@@ -117,7 +117,7 @@
                 mdtMenuSelected: "&onMenuSelected",
                 onPopup: "&"
             },
-            controller: ['$scope',function ($scope) {
+            controller: ['$scope', function ($scope) {
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 
@@ -152,7 +152,7 @@
                         this.fetchPage_(pageNumber);
 
                         var eTime = Date.now();
-                        console.log('etime: '+ (eTime-sTime));
+                        console.log('etime: ' + (eTime - sTime));
                     }
                 };
 
@@ -206,7 +206,7 @@
                     $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         $scope.$watchCollection('mdtModel.data', function (data) {
-                            if(data) {
+                            if (data) {
                                 $timeout(function () {
                                     $scope.tableIsReady = true;
                                 }, 500);
@@ -214,10 +214,12 @@
                             if (data && data.length) {
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
                                 $scope.dynamicItems = new DynamicItems();
-                                if ($scope.mdtPaginationHelper.getRows().length) {
+                                var rowsLength = $scope.mdtPaginationHelper.getRows().length;
+                                if (rowsLength) {
+
                                     // $scope.tableIsReady = false;
                                     // $scope.tableDataIsReady = false;
-                                    // $scope.watiForHeight();
+                                    $scope.watiForHeight(rowsLength);
                                 }
                             }
                         });
@@ -269,7 +271,7 @@
                     return widthNoScroll - widthWithScroll;
                 }
 
-                $scope.scrollWidth = getScrollbarWidth() || 1;
+
                 /*
                  function watchAnalytics() {
                  $timeout(function() {
@@ -295,20 +297,29 @@
                     return -$('#hiddenBody', element).height();
                 };
 
-                $scope.watiForHeight = function () {
-                    var height = $scope.hiddenHeadHeight();
-                    if (!height && !$scope.tableDataIsReady) {
-                        $timeout(function () {
-                            $scope.watiForHeight();
-                        });
-                    } else {
-                        $('#data-table', element).css('margin-top', height);
-                        $timeout(function () {
-                            var $dc = $('.data-container', element);
-                            $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
-                        });
-                        $scope.tableIsReady = true;
-                    }
+                $scope.watiForHeight = function (rowsLength) {
+                    $timeout(function () {
+                        $scope.scrollWidth = getScrollbarWidth() || 1;
+                        var $dc = $('.data-container', element);
+
+                        $scope.isScrollVisible = rowsLength * 48 > $dc.height();
+                    });
+
+                    /*
+                                        var height = $scope.hiddenHeadHeight();
+                                        if (!height && !$scope.tableDataIsReady) {
+                                            $timeout(function () {
+                                                $scope.watiForHeight();
+                                            });
+                                        } else {
+                                            $('#data-table', element).css('margin-top', height);
+                                            $timeout(function () {
+                                                var $dc = $('.data-container', element);
+                                                $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
+                                            });
+                                            $scope.tableIsReady = true;
+                                        }
+                    */
                 };
 
                 // $scope.watiForHeight();

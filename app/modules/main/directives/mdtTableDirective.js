@@ -1,3 +1,4 @@
+
 (function () {
     'use strict';
 
@@ -118,6 +119,7 @@
                 onPopup: "&"
             },
             controller: ['$scope', function ($scope) {
+
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
 

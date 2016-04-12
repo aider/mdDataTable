@@ -192,8 +192,8 @@
   white-space: nowrap;
 }
 .mdtTable #visible-header {
-  background-color: #FAFAFA;
-  border-bottom: 1px solid #eeeeee;
+  background-color: #EEEEEE;
+  border-bottom: 1px solid #E0E0E0;
 }
 .mdtTable .noselect, .mdtTable table tr {
   -webkit-touch-callout: none;

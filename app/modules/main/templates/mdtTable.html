@@ -5,31 +5,32 @@
     <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length">
         <div layout="row" mdt-animate-sort-icon-handler flex>
             <div
-                 ng-style="headerRowData.style"
-                 class="th"
-                 mdt-add-align-class="headerRowData.alignRule"
-                 mdt-sort-handler
-                 md-ink-ripple="{{rippleEffect}}"
-                 ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
+                    ng-style="headerRowData.style"
+                    class="th"
+                    mdt-add-align-class="headerRowData.alignRule"
+                    mdt-sort-handler
+                    md-ink-ripple="{{rippleEffect}}"
+                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
                 <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
             </div>
             <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></div>
         </div>
     </div>
-    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" vs-repeat vs-scroll-parent="">
+    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length">
         <md-list flex mtd-context-menu
                  menu-list="menuList"
                  on-menu-selected="onMenuSelected(menuItem)"
                  on-popup="onPopup()">
             <!--<div vs-repeat style="width: 100%;height: 100%">-->
-                <!--<md-virtual-repeat-container style="top:0;bottom:0;left:0;right:0;position: absolute"> md-on-demand="true" md-item-size="49"-->
-            <md-list-item ng-repeat="rowData in mdtPaginationHelper.getRows() track by $index"
+            <md-virtual-repeat-container style="top:57px;bottom:0;left:0;right:0;position: absolute">
+                <md-list-item md-virtual-repeat="rowData in mdtPaginationHelper.getRows()"
+                              md-item-size="49"
                               class="row-container"
                               ng-class="{'selectedRow': rowData.optionList.selected}"
                               ng-click="mdtPaginationHelper.selectRow(rowData)"
                               on-long-press="mdtPaginationHelper.selectRow(rowData)"
                               ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
-                          aria-label="{{$index}}"
+                              aria-label="{{$index}}"
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
                     <div class="td"
                          ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
@@ -49,8 +50,8 @@
                         </div>
                     </div>
                 </md-list-item>
-            <!--</div>-->
-            <!--</md-virtual-repeat-container>-->
+                <!--</div>-->
+            </md-virtual-repeat-container>
         </md-list>
     </div>
 

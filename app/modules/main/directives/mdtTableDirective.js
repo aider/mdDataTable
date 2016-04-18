@@ -213,7 +213,7 @@
                                     $scope.tableIsReady = true;
                                 }, 500);
                             }
-                            if (data && data.length) {
+                            if (data && angular.isArray(data)) {
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
                                 $scope.dynamicItems = new DynamicItems();
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;

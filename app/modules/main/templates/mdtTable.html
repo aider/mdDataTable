@@ -1,7 +1,7 @@
 <md-content flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;" ng-cloak ng-class="{'invisible': !tableIsReady}">
-    <md-content ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center">
+    <div ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center" style="height: 100%">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
-    </md-content>
+    </div>
     <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length">
         <div layout="row" mdt-animate-sort-icon-handler flex>
             <div

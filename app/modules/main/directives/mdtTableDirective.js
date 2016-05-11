@@ -398,7 +398,7 @@
                 var dateFilter = $filter('date');
                 var dateFormated = dateFilter(inputDate, 'MMM dd, yyyy');
                 var currentFormated = dateFilter(Date.now(), 'MMM dd, yyyy');
-                console.log(currentFormated);
+                
                 if(currentFormated === dateFormated){
                     dateFormated = dateFilter(inputDate, 'h:mm a');
                 }

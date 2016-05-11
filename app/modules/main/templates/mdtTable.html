@@ -21,7 +21,6 @@
                  menu-list="menuList"
                  on-menu-selected="onMenuSelected(menuItem)"
                  on-popup="onPopup()">
-            <!--<div vs-repeat style="width: 100%;height: 100%">-->
             <md-virtual-repeat-container style="top:57px;bottom:0;left:0;right:0;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in mdtPaginationHelper.getRows()"
                               md-item-size="49"
@@ -40,17 +39,16 @@
 
                         <div class="first-column-section">
                             <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
-                            <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | dateFilter:'&#8212'}}</span>
                             <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
                         </div>
                         <div ng-if="headerRowData.secondColumn" class="second-column-section" ng-class="headerRowData.secondColumn.class" ng-switch="headerRowData.secondColumn.type">
                             <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
-                            <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | date:'MMM dd, yyyy' | ifEmpty:'&#8212'}}</span>
+                            <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | dateFilter:'&#8212'}}</span>
                             <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:'&#8212'}}</span>
                         </div>
                     </div>
                 </md-list-item>
-                <!--</div>-->
             </md-virtual-repeat-container>
         </md-list>
     </div>

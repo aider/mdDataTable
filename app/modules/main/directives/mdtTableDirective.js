@@ -1,4 +1,3 @@
-
 (function () {
     'use strict';
 
@@ -243,20 +242,20 @@
                     });
 
                     /*
-                                        var height = $scope.hiddenHeadHeight();
-                                        if (!height && !$scope.tableDataIsReady) {
-                                            $timeout(function () {
-                                                $scope.watiForHeight();
-                                            });
-                                        } else {
-                                            $('#data-table', element).css('margin-top', height);
-                                            $timeout(function () {
-                                                var $dc = $('.data-container', element);
-                                                $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
-                                            });
-                                            $scope.tableIsReady = true;
-                                        }
-                    */
+                     var height = $scope.hiddenHeadHeight();
+                     if (!height && !$scope.tableDataIsReady) {
+                     $timeout(function () {
+                     $scope.watiForHeight();
+                     });
+                     } else {
+                     $('#data-table', element).css('margin-top', height);
+                     $timeout(function () {
+                     var $dc = $('.data-container', element);
+                     $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
+                     });
+                     $scope.tableIsReady = true;
+                     }
+                     */
                 };
 
                 // $scope.watiForHeight();
@@ -389,5 +388,21 @@
 
                 return input;
             }
-        });
+        })
+        .filter('dateFilter', ['$filter', function ($filter) {
+            return function (input, defaultValue) {
+                if (angular.isUndefined(input) || input === null || input === '') {
+                    return defaultValue;
+                }
+                var inputDate = new Date(input);
+                var dateFilter = $filter('date');
+                var dateFormated = dateFilter(inputDate, 'MMM dd, yyyy');
+                var currentFormated = dateFilter(Date.now(), 'MMM dd, yyyy');
+                console.log(currentFormated);
+                if(currentFormated === dateFormated){
+                    dateFormated = dateFilter(inputDate, 'h:mm a');
+                }
+                return dateFormated;
+            }
+        }]);
 }());

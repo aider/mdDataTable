@@ -60,7 +60,7 @@
         };
 
         mdtPaginationHelper.prototype.contextMenu = function (rowData, $event) {
-            this.tableDataStorageService.contextMenuFn({rowData: rowData, $event:$event});
+            this.tableDataStorageService.contextMenuFn({rowData: rowData, $event: $event});
         };
 
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
@@ -73,6 +73,21 @@
             this.tableDataStorageService.selectedRow = rowData;
             this.tableDataStorageService.selectCbFn({rowData: rowData});
 
+        };
+        mdtPaginationHelper.prototype.onTouch = function (rowData) {
+            var isMobile = /iPhone|iPod|iPad|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                rowData.optionList.selected = true;
+
+
+                if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
+                    this.tableDataStorageService.selectedRow.optionList.selected = false;
+                }
+                this.tableDataStorageService.selectedRow = rowData;
+                this.tableDataStorageService.touchCbFn({rowData: rowData});
+            } else {
+                this.tableDataStorageService.selectRow(rowData);
+            }
         };
 
         mdtPaginationHelper.prototype.getRows = function () {

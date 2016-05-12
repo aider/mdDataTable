@@ -2,7 +2,7 @@
     <div ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center" style="height: 100%">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
     </div>
-    <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length">
+    <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length && !mtHideHeader">
         <div layout="row" mdt-animate-sort-icon-handler flex>
             <div
                     ng-style="headerRowData.style"
@@ -21,14 +21,15 @@
                  menu-list="menuList"
                  on-menu-selected="onMenuSelected(menuItem)"
                  on-popup="onPopup()">
-            <md-virtual-repeat-container style="top:57px;bottom:0;left:0;right:0;position: absolute">
+            <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'57px'}" style="bottom:0;left:0;right:0;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in mdtPaginationHelper.getRows()"
                               md-item-size="49"
                               class="row-container"
                               ng-class="{'selectedRow': rowData.optionList.selected}"
-                              ng-click="mdtPaginationHelper.selectRow(rowData)"
+                              ng-click="mdtPaginationHelper.onTouch(rowData)"
                               on-long-press="mdtPaginationHelper.selectRow(rowData)"
                               ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
+
                               aria-label="{{$index}}"
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)">
                     <div class="td"

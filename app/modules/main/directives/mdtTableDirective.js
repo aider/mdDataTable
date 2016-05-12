@@ -106,9 +106,11 @@
                 paginatedRows: '=',
                 mdtModel: '=',
                 mdtSelectFn: '&',
+                mdtTouchFn: '&',
                 mdtDblclickFn: '&',
                 mdtContextMenuFn: '&',
                 mdtRow: '=',
+                mtHideHeader: '=',
                 mdtRowPaginator: '&?',
                 mdtRowPaginatorErrorMessage: "@",
                 mdtEmptyTitle: "=",
@@ -151,7 +153,7 @@
                                 }, 500);
                             }
                             if (data && angular.isArray(data)) {
-                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
 
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
                                 if (rowsLength) {

@@ -86,7 +86,7 @@
                 this.tableDataStorageService.selectedRow = rowData;
                 this.tableDataStorageService.touchCbFn({rowData: rowData});
             } else {
-                this.tableDataStorageService.selectRow(rowData);
+                this.selectRow(rowData);
             }
         };
 

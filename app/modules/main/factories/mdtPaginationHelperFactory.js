@@ -76,15 +76,15 @@
         };
         mdtPaginationHelper.prototype.onTouch = function (rowData) {
             var isMobile = /iPhone|iPod|iPad|Android/i.test(navigator.userAgent);
+            rowData.optionList.selected = true;
             if (isMobile) {
-                rowData.optionList.selected = true;
-
-
-                if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
-                    this.tableDataStorageService.selectedRow.optionList.selected = false;
-                }
-                this.tableDataStorageService.selectedRow = rowData;
-                this.tableDataStorageService.touchCbFn({rowData: rowData});
+                this.dblclick(rowData);
+                /*
+                 if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
+                 this.tableDataStorageService.selectedRow.optionList.selected = false;
+                 }
+                 this.tableDataStorageService.selectedRow = rowData;
+                 this.tableDataStorageService.touchCbFn({rowData: rowData});*/
             } else {
                 this.selectRow(rowData);
             }

@@ -55,6 +55,9 @@
   display: -webkit-flex;
   padding: 0 6px;
 }
+.mdtTable .td:focus {
+  outline: none;
+}
 .mdtTable .th {
   display: -webkit-flex;
   padding: 0 6px;
@@ -157,6 +160,7 @@
   height: 100%;
 }
 .mdtTable table .column-container .td {
+  outline: none;
   padding: 0 6px;
   overflow: hidden;
   position: absolute;
@@ -168,6 +172,9 @@
   max-height: 25px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.mdtTable table .column-container .td:focus {
+  outline: none;
 }
 .mdtTable table .column-container .th {
   overflow: hidden;

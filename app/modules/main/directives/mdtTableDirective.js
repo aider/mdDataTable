@@ -123,6 +123,10 @@
 
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
+                $scope.remove = function (id) {
+                    debugger;
+                    console.log($scope.tableDataStorageService.storage);
+                };
 
                 initTableStorageServiceAndBindMethods();
 
@@ -175,11 +179,14 @@
             }],
             link: function ($scope, element, attrs, ctrl, transclude) {
                 injectContentIntoTemplate();
-
+                $scope.isSelectable = angular.isDefined(attrs.mdtSelectFn);
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 
-
+                $scope.remove = function (id) {
+                    debugger;
+                    console.log($scope.tableDataStorageService.storage);
+                };
                 $scope.onMenuSelected = function (menuItem) {
                     $scope.mdtMenuSelected({menuItem: menuItem});
                 };

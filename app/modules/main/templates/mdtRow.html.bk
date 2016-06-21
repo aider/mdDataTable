@@ -1,0 +1,15 @@
+<!--ng-repeat="headerRowData in headers | filter: {enabled : true} track by $index"-->
+<!--<div class="td" ng-class="headerRowData.class" ng-switch="headerRowData.type" ng-click="headerRowData.onClick(rowData)" ng-style="headerRowData.style">-->
+<div class="td" ng-class="headerRowData.class" ng-switch="headerRowData.type" ng-click="headerRowData.onClick(rowData)" ng-style="headerRowData.style">
+
+    <div class="first-column-section">
+        <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.content(rowData)"></span>
+        <span ng-switch-when="date">{{(headerRowData.content(rowData) || rowData.data[headerRowData.id]) | dateFilter:'&#8212'}}</span>
+        <span ng-switch-default>{{headerRowData.content(rowData) || rowData.data[headerRowData.id] | ifEmpty:'&#8212'}}</span>
+    </div>
+    <div ng-if="headerRowData.secondColumn" class="second-column-section" ng-class="headerRowData.secondColumn.class" ng-switch="headerRowData.secondColumn.type">
+        <span ng-switch-when="html" mdt-add-html-content-to-cell="headerRowData.secondColumn.content(rowData)"></span>
+        <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | dateFilter:'&#8212'}}</span>
+        <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:'&#8212'}}</span>
+    </div>
+</div>

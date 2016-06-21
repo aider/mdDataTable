@@ -60,8 +60,13 @@
                               md-item-size="49"
                               class="row-container"
                               ng-class="{'selectedRow': rowData.optionList.selected}"
-                              aria-label="{{$index}}">
-                    <div class="td"
+                              aria-label="{{$index}}"
+                              mdt-table-row
+                              data-grid-id="gridId"
+                              data-props="tableDataStorageService.header"
+                              data-model="rowData">
+
+                    <!--<div class="td"
 
                          ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index"
                          ng-class="headerRowData.class"
@@ -79,7 +84,7 @@
                             <span ng-switch-when="date">{{headerRowData.secondColumn.content(rowData) | dateFilter:'&#8212'}}</span>
                             <span ng-switch-default>{{headerRowData.secondColumn.content(rowData) | ifEmpty:'&#8212'}}</span>
                         </div>
-                    </div>
+                    </div>-->
                 </md-list-item>
             </md-virtual-repeat-container>
         </md-list>

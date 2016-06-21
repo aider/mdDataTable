@@ -2,6 +2,9 @@
     angular
         .module('material.components.table')
         .factory('Util', UtilService);
+    angular
+        .module('material.components.table')
+        .factory('superCache', superCache);
 
     function UtilService() {
         return {
@@ -23,6 +26,18 @@
                     top: top,
                     left: left
                 };
+            }
+        };
+    }
+
+    function superCache() {
+        var cache = {};
+        return {
+            set: function (key, value) {
+                cache[key] = value;
+            },
+            get: function (key) {
+                return cache[key];
             }
         };
     }

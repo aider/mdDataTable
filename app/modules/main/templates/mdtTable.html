@@ -24,13 +24,15 @@
             <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'57px'}" style="bottom:0;left:0;right:0;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in tableDataStorageService.storage"
                               md-item-size="49"
+                              aria-label="{{$index}}"
+                              ng-class="{'selectedRow': rowData.optionList.selected}"
                               class="row-container"
-                              ng-click="mdtPaginationHelper.onTouch(rowData)"
                               on-long-press="mdtPaginationHelper.selectRow(rowData)"
                               ng-dblclick="mdtPaginationHelper.dblclick(rowData)"
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
                               mdt-table-row
                               data-grid-id="gridId"
+                              data-on-click="mdtPaginationHelper.onTouch(rowData)"
                               data-props="tableDataStorageService.header"
                               data-model="rowData">
                 </md-list-item>
@@ -42,6 +44,8 @@
             <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'57px'}" style="bottom:0;left:0;right:0;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in tableDataStorageService.storage"
                               md-item-size="49"
+                              aria-label="{{$index}}"
+                              ng-class="{'selectedRow': rowData.optionList.selected}"
                               class="row-container"
                               mdt-table-row
                               data-grid-id="gridId"

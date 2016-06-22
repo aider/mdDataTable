@@ -8,15 +8,11 @@
             scope: {
                 gridId: '=',
                 props: '=',
-                model: '='
+                model: '=',
+                onClick: '&'
             },
-            // replace: true,
-            // transclude: true,
-            // template:'',
             link: function (scope, element, attrs) {
 
-                scope.onTouch = mdtPaginationHelperFactory.onTouch;
-                scope.dblclick = mdtPaginationHelperFactory.dblclick;
                 scope.trustAsHtml = function (string) {
                     return $sce.trustAsHtml(string);
                 };
@@ -35,7 +31,7 @@
                         // superCache.put('sortedProps', sortedProps);
                         if (!isOnClickExists) {
                             // rowTemplate.push('<button class="md-no-style md-button md-ink-ripple" type="button" ng-click="onTouch(model)">');
-                            rowTemplate.push('<div class="md-button _md-no-style"><button class="_md-no-style md-button md-ink-ripple" type="button" ng-click="onTouch(model)" ng-dblclick="dblclick(model)"></button><div class="_md-list-item-inner">');
+                            rowTemplate.push('<div class="md-button _md-no-style"><button class="_md-no-style md-button md-ink-ripple" type="button" ng-click="onClick(model)"></button><div class="_md-list-item-inner">');
                         }
 
                         sortedProps.forEach(function (prop, index) {

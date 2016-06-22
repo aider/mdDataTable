@@ -91,8 +91,10 @@
         };
 
         mdtPaginationHelper.prototype.getRows = function () {
-            this.calculateVisibleRows();
+            // var sTime = Date.now();
 
+            // this.calculateVisibleRows();
+            // console.log('getRows['+(Date.now()-sTime)+']');
             return this.tableDataStorageService.storage;
         };
 

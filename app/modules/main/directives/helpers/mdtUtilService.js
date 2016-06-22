@@ -33,7 +33,7 @@
     function superCache() {
         var cache = {};
         return {
-            set: function (key, value) {
+            put: function (key, value) {
                 cache[key] = value;
             },
             get: function (key) {

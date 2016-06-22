@@ -21,6 +21,9 @@
   /* INTERACTION */
   /* default icon color */
 }
+.mdtTable md-list-item._md-button-wrap > div.md-button:first-child {
+  padding: 0;
+}
 .mdtTable .row-header,
 .mdtTable .row-container {
   display: flex;

@@ -69,13 +69,14 @@
                                 if (scope.onPopup()) {
                                     left = event.originalEvent.pageX;
                                     top = event.originalEvent.pageY;
-                                    offset = Util.offset(self);
+                                    offset = Util.offset(this);
 
-                                    if (left + menuListElem[0].clientWidth > offset.left + self.clientWidth) {
-                                        left -= (left + menuListElem[0].clientWidth) - (offset.left + self.clientWidth);
+                                    if (left + menuListElem[0].clientWidth > offset.left + this.clientWidth) {
+                                        left -= (left + menuListElem[0].clientWidth) - (offset.left + this.clientWidth);
                                     }
-                                    if (top + menuListElem[0].clientHeight > offset.top + self.clientHeight) {
-                                        top -= (top + menuListElem[0].clientHeight) - (offset.top + self.clientHeight);
+                                    if (top + menuListElem[0].clientHeight > offset.top + this.clientHeight) {
+                                        top -= menuListElem[0].clientHeight;
+                                        // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
                                     }
 
                                     scope.contextMenuState.left = (left) + 'px';
@@ -99,12 +100,14 @@
                             left = event.clientX;
                             top = event.clientY;
                             offset = Util.offset(this);
-
+                            debugger;
                             if (left + menuListElem[0].clientWidth > offset.left + this.clientWidth) {
                                 left -= (left + menuListElem[0].clientWidth) - (offset.left + this.clientWidth);
                             }
                             if (top + menuListElem[0].clientHeight > offset.top + this.clientHeight) {
-                                top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
+                                top -= menuListElem[0].clientHeight;
+                                // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
+                                // top = top - menuListElem[0].clientHeight + $('md-list-item', this).height()  ;
                             }
 
                             scope.contextMenuState.left = left + 'px';

@@ -77,7 +77,6 @@
                         }
 
                         htmlTemplate = rowTemplate.join('');
-                        console.log(htmlTemplate);
                         superCache.put(templateCacheKey, htmlTemplate);
                     }
                     element.html(htmlTemplate);

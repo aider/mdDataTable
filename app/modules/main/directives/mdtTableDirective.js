@@ -124,7 +124,7 @@
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
                 $scope.remove = function (id) {
-                    console.log($scope.tableDataStorageService.storage);
+                    // console.log($scope.tableDataStorageService.storage);
                 };
 
                 initTableStorageServiceAndBindMethods();

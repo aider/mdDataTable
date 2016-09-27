@@ -74,7 +74,8 @@
                                     if (left + menuListElem.width() > offset.left + this.clientWidth) {
                                         left -= (left + menuListElem.width()) - (offset.left + this.clientWidth);
                                     }
-                                    if (top + menuListElem.height() > offset.top + this.clientHeight) {
+
+                                    if (top + menuListElem.height() + $('md-list-item', this).height() > offset.top + this.clientHeight) {
                                         top -= menuListElem.height();
                                         // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
                                     }
@@ -103,7 +104,7 @@
                             if (left + menuListElem.width() > offset.left + this.clientWidth) {
                                 left -= (left + menuListElem.width()) - (offset.left + this.clientWidth);
                             }
-                            if (top + menuListElem.height() > offset.top + this.clientHeight) {
+                            if (top + menuListElem.height() + $('md-list-item', this).height() > offset.top + this.clientHeight) {
                                 top -= menuListElem.height();
                                 // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
                                 // top = top - menuListElem[0].clientHeight + $('md-list-item', this).height()  ;

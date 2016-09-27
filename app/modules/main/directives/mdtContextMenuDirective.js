@@ -71,11 +71,11 @@
                                     top = event.originalEvent.pageY;
                                     offset = Util.offset(this);
 
-                                    if (left + menuListElem[0].clientWidth > offset.left + this.clientWidth) {
-                                        left -= (left + menuListElem[0].clientWidth) - (offset.left + this.clientWidth);
+                                    if (left + menuListElem.width() > offset.left + this.clientWidth) {
+                                        left -= (left + menuListElem.width()) - (offset.left + this.clientWidth);
                                     }
-                                    if (top + menuListElem[0].clientHeight > offset.top + this.clientHeight) {
-                                        top -= menuListElem[0].clientHeight;
+                                    if (top + menuListElem.height() > offset.top + this.clientHeight) {
+                                        top -= menuListElem.height();
                                         // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
                                     }
 
@@ -100,12 +100,11 @@
                             left = event.clientX;
                             top = event.clientY;
                             offset = Util.offset(this);
-                            debugger;
-                            if (left + menuListElem[0].clientWidth > offset.left + this.clientWidth) {
-                                left -= (left + menuListElem[0].clientWidth) - (offset.left + this.clientWidth);
+                            if (left + menuListElem.width() > offset.left + this.clientWidth) {
+                                left -= (left + menuListElem.width()) - (offset.left + this.clientWidth);
                             }
-                            if (top + menuListElem[0].clientHeight > offset.top + this.clientHeight) {
-                                top -= menuListElem[0].clientHeight;
+                            if (top + menuListElem.height() > offset.top + this.clientHeight) {
+                                top -= menuListElem.height();
                                 // top -= (top + menuListElem[0].clientHeight) - (offset.top + this.clientHeight);
                                 // top = top - menuListElem[0].clientHeight + $('md-list-item', this).height()  ;
                             }

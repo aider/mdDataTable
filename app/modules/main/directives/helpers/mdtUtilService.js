@@ -17,9 +17,16 @@
                     left = 0;
 
                 while (typeof parentNode.offsetTop !== 'undefined') {
+                    var _parentNode = parentNode.parentNode;
+
+                    if (_parentNode && _parentNode.tagName && _parentNode.tagName.toLowerCase() == "section") {
+                        break;
+                    }
                     top += parentNode.offsetTop;
                     left += parentNode.offsetLeft;
                     parentNode = parentNode.parentNode;
+
+
                 }
 
                 return {

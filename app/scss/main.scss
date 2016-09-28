@@ -11,7 +11,7 @@ $checkBoxWidth: 18px;
   right: 0;
   bottom: 0;
 
-  md-list-item._md-button-wrap > div.md-button:first-child{
+  md-list-item.md-button-wrap > div.md-button:first-child{
     padding: 0;
   }
   .row-header {
@@ -110,6 +110,11 @@ $checkBoxWidth: 18px;
   md-list {
     overflow-y: auto;
   }
+
+  md-list-item._md-button-wrap > div.md-button:first-child {
+    padding: 0;
+  }
+
   md-list-item {
     border-bottom: solid 1px #DDDDDD;
     padding: 0;

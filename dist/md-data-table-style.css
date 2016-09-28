@@ -21,7 +21,7 @@
   /* INTERACTION */
   /* default icon color */
 }
-.mdtTable md-list-item._md-button-wrap > div.md-button:first-child {
+.mdtTable md-list-item.md-button-wrap > div.md-button:first-child {
   padding: 0;
 }
 .mdtTable .row-header,
@@ -97,6 +97,9 @@
 }
 .mdtTable md-list {
   overflow-y: auto;
+}
+.mdtTable md-list-item._md-button-wrap > div.md-button:first-child {
+  padding: 0;
 }
 .mdtTable md-list-item {
   border-bottom: solid 1px #DDDDDD;

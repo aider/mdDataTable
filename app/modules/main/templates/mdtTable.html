@@ -18,10 +18,11 @@
     </div>
     <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" ng-if="isSelectable">
         <md-list flex mtd-context-menu
+                 style="position: relative"
                  menu-list="menuList"
                  on-menu-selected="onMenuSelected(menuItem)"
                  on-popup="onPopup()">
-            <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'57px'}" style="bottom:0;left:0;right:0;width:100%;position: absolute">
+            <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'0px'}" style="bottom:0;left:0;right:0;width:100%;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in tableDataStorageService.storage"
                               md-item-size="49"
                               aria-label="{{$index}}"
@@ -40,8 +41,8 @@
         </md-list>
     </div>
     <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" ng-if="!isSelectable">
-        <md-list flex>
-            <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'57px'}" style="bottom:0;left:0;right:0;position: absolute">
+        <md-list flex style="position: relative">
+            <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'0px'}" style="bottom:0;left:0;right:0;width:100%;position: absolute">
                 <md-list-item md-virtual-repeat="rowData in tableDataStorageService.storage"
                               md-item-size="49"
                               aria-label="{{$index}}"

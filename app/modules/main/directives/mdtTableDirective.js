@@ -149,7 +149,7 @@
 
                     $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
-                        $scope.$watchCollection('mdtModel.data', function (data) {
+                        var unbindCollection = $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data) {
                                 $timeout(function () {
                                     $scope.tableIsReady = true;
@@ -160,7 +160,7 @@
 
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
                                 if (rowsLength) {
-                                    $scope.watiForHeight(rowsLength);
+                                    $scope.watiForHeight(rowsLength, unbindCollection);
                                 }
                             }
                         });
@@ -241,12 +241,23 @@
                     return -$('#hiddenBody', element).height();
                 };
 
-                $scope.watiForHeight = function (rowsLength) {
+                $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 1;
-                        var $dc = $('.data-container', element);
-
+                        var baseContainer = $('#grid_'+$scope.gridId);
+                        if(!baseContainer.length) {
+                            unbindCollection();
+                            return;
+                        }
+                        var $dc = $('.data-container', baseContainer);
+                        if(!$dc.is(':visible')) {
+                            $scope.watiForHeight(rowsLength, unbindCollection);
+                            return
+                        }
                         $scope.isScrollVisible = rowsLength * 48 > $dc.height();
+                        // if($scope.isScrollVisible) {
+                        //     debugger;
+                        // }
                     });
 
                     /*

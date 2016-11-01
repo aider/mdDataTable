@@ -727,6 +727,220 @@
     angular.module('material.components.table').directive('mdtTableRow', ['superCache', '$compile', '$sce', 'mdtPaginationHelperFactory', mdtTableRow]);
 })();
 
+(function () {
+    'use strict';
+
+    function TableDataStorageFactory($log) {
+
+        function TableDataStorageService() {
+            this.srcModel = {};
+            this.storage = [];
+            this.header = [];
+            this.maxRow = {data: {}};
+            this.maxWidth = {};
+
+            this.sortByColumnLastIndex = null;
+            this.orderByAscending = true;
+        }
+
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn, touchCbFn, dblClickCbFn, contextMenuFn, onPopup) {
+            this.storage = [];
+            this.maxRow = {data: {}};
+            this.maxWidth = {};
+
+            this.selectCbFn = selectCbFn;
+            this.dblClickCbFn = dblClickCbFn;
+            this.touchCbFn = touchCbFn;
+            this.contextMenuFn = contextMenuFn;
+            this.onPopup = onPopup;
+            var _header = this.header = mdtModel.headers;
+            var _storage = this.storage;
+            var _maxRow = this.maxRow.data;
+            var _maxWidth = this.maxWidth;
+
+            var canvas = document.createElement("canvas");
+            var context = canvas.getContext("2d");
+            //context.font = font;
+            var orderIndex = 0;
+            _header.forEach(function (header, index) {
+                header.class = header.class || '';
+                header.class += ' flex-order-' + orderIndex;
+                orderIndex++;
+                // if (header.secondColumn) {
+                //     header.class += ' first-column-section';
+                //     header.secondColumn.class += ' flex-order-' + orderIndex;
+                // } else {
+                //     // header.class
+                // }
+            });
+            mdtModel.data.forEach(function (item) {
+                _header.forEach(function (header, index) {
+                    var _value = item[header.id];
+                    var metrics = context.measureText(_value);
+                    var _width = metrics.width;
+
+                    if (!_maxRow[header.id]) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    } else if (_maxWidth[header.id] < _width) {
+                        _maxRow[header.id] = _value;
+                        _maxWidth[header.id] = _width;
+                    }
+                });
+
+
+                var id = item.id;
+                _storage.push({
+                    rowId: id,
+                    optionList: {
+                        selected: false,
+                        deleted: false,
+                        visible: true
+                    },
+                    data: item
+                });
+            });
+        };
+        TableDataStorageService.prototype.addHeaderCellData = function (ops) {
+            this.header.push(ops);
+        };
+
+        TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
+            if (!(rowArray instanceof Array)) {
+                $log.error('`rowArray` parameter should be array');
+                return;
+            }
+
+            this.storage.push({
+                rowId: explicitRowId,
+                optionList: {
+                    selected: false,
+                    deleted: false,
+                    visible: true
+                },
+                data: rowArray
+            });
+        };
+
+        TableDataStorageService.prototype.getRowData = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
+                return;
+            }
+
+            return this.storage[index].data;
+        };
+
+        TableDataStorageService.prototype.getRowOptions = function (index) {
+            if (!this.storage[index]) {
+                $log.error('row is not exists at index: ' + index);
+                return;
+            }
+
+            return this.storage[index].optionList;
+        };
+
+        TableDataStorageService.prototype.setAllRowsSelected = function (isSelected, isPaginationEnabled) {
+            if (typeof isSelected === 'undefined') {
+                $log.error('`isSelected` parameter is required');
+                return;
+            }
+            for (var i = 0; i < this.storage.length; i++) {
+                var rowData = this.storage[i];
+                if (isPaginationEnabled) {
+                    if (rowData.optionList.visible) {
+                        rowData.optionList.selected = isSelected ? true : false;
+                    }
+                } else {
+                    rowData.optionList.selected = isSelected ? true : false;
+                }
+
+            }
+        };
+
+        TableDataStorageService.prototype.reverseRows = function () {
+            this.storage.reverse();
+        };
+
+        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee) {
+            if (this.sortByColumnLastIndex === columnIndex) {
+                this.reverseRows();
+
+                this.orderByAscending = !this.orderByAscending;
+            } else {
+                this.sortByColumnIndex(columnIndex, iteratee);
+
+                this.sortByColumnLastIndex = columnIndex;
+                this.orderByAscending = true;
+            }
+
+            return this.orderByAscending ? -1 : 1;
+        };
+
+        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee) {
+
+            var sortFunction;
+            if (typeof iteratee === 'function') {
+                sortFunction = function (rowData) {
+                    return iteratee(rowData.data[index], rowData, index);
+                };
+            } else {
+                var id = this.header[index] ? this.header[index].id : undefined;
+                sortFunction = function (rowData) {
+
+                    return rowData.data[id || index];
+                };
+            }
+
+            this.storage = _.sortBy(this.storage, sortFunction);
+        };
+
+        TableDataStorageService.prototype.isAnyRowSelected = function () {
+            return _.some(this.storage, function (rowData) {
+                return rowData.optionList.selected === true && rowData.optionList.deleted === false;
+            });
+        };
+
+        TableDataStorageService.prototype.getNumberOfSelectedRows = function () {
+            var res = _.countBy(this.storage, function (rowData) {
+                return rowData.optionList.selected === true && rowData.optionList.deleted === false ? 'selected' : 'unselected';
+            });
+
+            return res.selected ? res.selected : 0;
+        };
+
+        TableDataStorageService.prototype.deleteSelectedRows = function () {
+            var deletedRows = [];
+
+            _.each(this.storage, function (rowData) {
+                if (rowData.optionList.selected && rowData.optionList.deleted === false) {
+
+                    if (rowData.rowId) {
+                        deletedRows.push(rowData.rowId);
+
+                        //Fallback when no id was specified
+                    } else {
+                        deletedRows.push(rowData.data);
+                    }
+
+                    rowData.optionList.deleted = true;
+                }
+            });
+
+            return deletedRows;
+        };
+
+        return {
+            getInstance: function () {
+                return new TableDataStorageService();
+            }
+        };
+    }
+
+    angular
+        .module('material.components.table')
+        .factory('TableDataStorageFactory', ['$log', TableDataStorageFactory]);
+}());
 (function(){
     'use strict';
 
@@ -977,220 +1191,6 @@
     angular
         .module('material.components.table')
         .service('mdtPaginationHelperFactory', mdtPaginationHelperFactory);
-}());
-(function () {
-    'use strict';
-
-    function TableDataStorageFactory($log) {
-
-        function TableDataStorageService() {
-            this.srcModel = {};
-            this.storage = [];
-            this.header = [];
-            this.maxRow = {data: {}};
-            this.maxWidth = {};
-
-            this.sortByColumnLastIndex = null;
-            this.orderByAscending = true;
-        }
-
-        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn, touchCbFn, dblClickCbFn, contextMenuFn, onPopup) {
-            this.storage = [];
-            this.maxRow = {data: {}};
-            this.maxWidth = {};
-
-            this.selectCbFn = selectCbFn;
-            this.dblClickCbFn = dblClickCbFn;
-            this.touchCbFn = touchCbFn;
-            this.contextMenuFn = contextMenuFn;
-            this.onPopup = onPopup;
-            var _header = this.header = mdtModel.headers;
-            var _storage = this.storage;
-            var _maxRow = this.maxRow.data;
-            var _maxWidth = this.maxWidth;
-
-            var canvas = document.createElement("canvas");
-            var context = canvas.getContext("2d");
-            //context.font = font;
-            var orderIndex = 0;
-            _header.forEach(function (header, index) {
-                header.class = header.class || '';
-                header.class += ' flex-order-' + orderIndex;
-                orderIndex++;
-                // if (header.secondColumn) {
-                //     header.class += ' first-column-section';
-                //     header.secondColumn.class += ' flex-order-' + orderIndex;
-                // } else {
-                //     // header.class
-                // }
-            });
-            mdtModel.data.forEach(function (item) {
-                _header.forEach(function (header, index) {
-                    var _value = item[header.id];
-                    var metrics = context.measureText(_value);
-                    var _width = metrics.width;
-
-                    if (!_maxRow[header.id]) {
-                        _maxRow[header.id] = _value;
-                        _maxWidth[header.id] = _width;
-                    } else if (_maxWidth[header.id] < _width) {
-                        _maxRow[header.id] = _value;
-                        _maxWidth[header.id] = _width;
-                    }
-                });
-
-
-                var id = item.id;
-                _storage.push({
-                    rowId: id,
-                    optionList: {
-                        selected: false,
-                        deleted: false,
-                        visible: true
-                    },
-                    data: item
-                });
-            });
-        };
-        TableDataStorageService.prototype.addHeaderCellData = function (ops) {
-            this.header.push(ops);
-        };
-
-        TableDataStorageService.prototype.addRowData = function (explicitRowId, rowArray) {
-            if (!(rowArray instanceof Array)) {
-                $log.error('`rowArray` parameter should be array');
-                return;
-            }
-
-            this.storage.push({
-                rowId: explicitRowId,
-                optionList: {
-                    selected: false,
-                    deleted: false,
-                    visible: true
-                },
-                data: rowArray
-            });
-        };
-
-        TableDataStorageService.prototype.getRowData = function (index) {
-            if (!this.storage[index]) {
-                $log.error('row is not exists at index: ' + index);
-                return;
-            }
-
-            return this.storage[index].data;
-        };
-
-        TableDataStorageService.prototype.getRowOptions = function (index) {
-            if (!this.storage[index]) {
-                $log.error('row is not exists at index: ' + index);
-                return;
-            }
-
-            return this.storage[index].optionList;
-        };
-
-        TableDataStorageService.prototype.setAllRowsSelected = function (isSelected, isPaginationEnabled) {
-            if (typeof isSelected === 'undefined') {
-                $log.error('`isSelected` parameter is required');
-                return;
-            }
-            for (var i = 0; i < this.storage.length; i++) {
-                var rowData = this.storage[i];
-                if (isPaginationEnabled) {
-                    if (rowData.optionList.visible) {
-                        rowData.optionList.selected = isSelected ? true : false;
-                    }
-                } else {
-                    rowData.optionList.selected = isSelected ? true : false;
-                }
-
-            }
-        };
-
-        TableDataStorageService.prototype.reverseRows = function () {
-            this.storage.reverse();
-        };
-
-        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee) {
-            if (this.sortByColumnLastIndex === columnIndex) {
-                this.reverseRows();
-
-                this.orderByAscending = !this.orderByAscending;
-            } else {
-                this.sortByColumnIndex(columnIndex, iteratee);
-
-                this.sortByColumnLastIndex = columnIndex;
-                this.orderByAscending = true;
-            }
-
-            return this.orderByAscending ? -1 : 1;
-        };
-
-        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee) {
-
-            var sortFunction;
-            if (typeof iteratee === 'function') {
-                sortFunction = function (rowData) {
-                    return iteratee(rowData.data[index], rowData, index);
-                };
-            } else {
-                var id = this.header[index] ? this.header[index].id : undefined;
-                sortFunction = function (rowData) {
-
-                    return rowData.data[id || index];
-                };
-            }
-
-            this.storage = _.sortBy(this.storage, sortFunction);
-        };
-
-        TableDataStorageService.prototype.isAnyRowSelected = function () {
-            return _.some(this.storage, function (rowData) {
-                return rowData.optionList.selected === true && rowData.optionList.deleted === false;
-            });
-        };
-
-        TableDataStorageService.prototype.getNumberOfSelectedRows = function () {
-            var res = _.countBy(this.storage, function (rowData) {
-                return rowData.optionList.selected === true && rowData.optionList.deleted === false ? 'selected' : 'unselected';
-            });
-
-            return res.selected ? res.selected : 0;
-        };
-
-        TableDataStorageService.prototype.deleteSelectedRows = function () {
-            var deletedRows = [];
-
-            _.each(this.storage, function (rowData) {
-                if (rowData.optionList.selected && rowData.optionList.deleted === false) {
-
-                    if (rowData.rowId) {
-                        deletedRows.push(rowData.rowId);
-
-                        //Fallback when no id was specified
-                    } else {
-                        deletedRows.push(rowData.data);
-                    }
-
-                    rowData.optionList.deleted = true;
-                }
-            });
-
-            return deletedRows;
-        };
-
-        return {
-            getInstance: function () {
-                return new TableDataStorageService();
-            }
-        };
-    }
-
-    angular
-        .module('material.components.table')
-        .factory('TableDataStorageFactory', ['$log', TableDataStorageFactory]);
 }());
 (function(){
     'use strict';
@@ -1730,9 +1730,9 @@
         .module('material.components.table')
         .directive('mdtCardHeader', mdtCardHeaderDirective);
 }());
-angular.module("mdtTemplates", []).run(function($templateCache) {$templateCache.put("/main/templates/mdtAlternateHeaders.html","<div class=\"mdt-header-alternate\" layout=\"row\" layout-align=\"start center\">\r\n    <span class=\"alternate-text\" flex>{{tableDataStorageService.getNumberOfSelectedRows()}} item selected</span>\r\n    <md-button class=\"md-icon-button md-primary\" ng-click=\"deleteSelectedRows()\" aria-label=\"Delete selected rows\">\r\n        <ng-md-icon icon=\"delete\" size=\"24\"></ng-md-icon>\r\n    </md-button>\r\n\r\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\r\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\r\n    </md-button>\r\n</div>");
-$templateCache.put("/main/templates/mdtCardFooter.html","<div class=\"mdt-footer\" layout=\"row\" ng-show=\"isPaginationEnabled()\">\r\n    <div class=\"mdt-pagination\"\r\n         layout=\"row\"\r\n         layout-align=\"end center\"\r\n         flex>\r\n\r\n        <span layout-margin>Rows per page:</span>\r\n        <md-input-container>\r\n            <md-select ng-model=\"rowsPerPage\" aria-label=\"rows per page\">\r\n                <md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\">{{pageSize}}</md-option>\r\n            </md-select>\r\n        </md-input-container>\r\n\r\n        <span layout-margin>\r\n            {{mdtPaginationHelper.getStartRowIndex()+1}}-{{mdtPaginationHelper.getEndRowIndex()+1}} of {{mdtPaginationHelper.getTotalRowsCount()}}\r\n        </span>\r\n\r\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Previous page\" ng-click=\"mdtPaginationHelper.previousPage()\">\r\n            <ng-md-icon icon=\"keyboard_arrow_left\" size=\"24\"></ng-md-icon>\r\n        </md-button>\r\n\r\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Next page\" ng-click=\"mdtPaginationHelper.nextPage()\">\r\n            <ng-md-icon icon=\"keyboard_arrow_right\" size=\"24\"></ng-md-icon>\r\n        </md-button>\r\n    </div>\r\n</div>");
-$templateCache.put("/main/templates/mdtCardHeader.html","<div class=\"mdt-header\" layout=\"row\" layout-align=\"start center\" ng-show=\"isTableCardEnabled\">\r\n    <span flex>{{tableCard.title}}</span>\r\n<!--\r\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"Filter\">\r\n        <ng-md-icon icon=\"filter_list\" size=\"24\"></ng-md-icon>\r\n    </md-button>\r\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\r\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\r\n    </md-button>\r\n-->\r\n</div>");
-$templateCache.put("/main/templates/mdtDropdown.html","<md-whiteframe class=\"md-whiteframe-4dp md-whiteframe-z2\" layout=\"column\">\r\n  <md-button ng-if=\"menuItem.enabled\" class=\"mdt-dropdown-menu-item\" ng-repeat=\"menuItem in menuList\" ng-click=\"onMenuSelected(menuItem)\" layout=\"row\" aria-label=\"{{::menuItem.name}}\">\r\n    <md-icon md-font-icon=\"material-icons\">{{::menuItem.icon}}</md-icon> <span class=\"name\" ng-bind=\"::menuItem.name\" flex></span>\r\n  </md-button>\r\n</md-whiteframe>\r\n");
-$templateCache.put("/main/templates/mdtGeneratedHeaderCellContent.html","<div>\r\n    <div layout=\"row\" ng-if=\"sortableColumns\" style=\"display: inline-block;\">\r\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\r\n\r\n        <span ng-show=\"headerRowData.alignRule == \'right\'\">\r\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\r\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\r\n            </span>\r\n\r\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\r\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\r\n            </span>\r\n        </span>\r\n\r\n        <span>\r\n            {{headerRowData.columnName}}\r\n        </span>\r\n\r\n        <span ng-show=\"headerRowData.alignRule == \'left\'\">\r\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\r\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\r\n            </span>\r\n\r\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\r\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\r\n            </span>\r\n        </span>\r\n    </div>\r\n    <div ng-if=\"!sortableColumns\">\r\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\r\n\r\n        <span>\r\n            {{headerRowData.columnName}}\r\n        </span>\r\n    </div>\r\n</div>");
-$templateCache.put("/main/templates/mdtTable.html","<md-content id=\"grid_{{gridId}}\" flex class=\"mdtTable md-whiteframe-z1\" layout=\"column\" style=\"box-shadow: none;\" ng-cloak ng-class=\"{\'invisible\': !tableIsReady}\">\r\n    <div ng-hide=\"mdtPaginationHelper.getRows().length\" flex layout=\"column\" layout-align=\"center center\" style=\"height: 100%\">\r\n        <span class=\"md-subhead\" ng-bind=\"mdtEmptyTitle\"></span>\r\n    </div>\r\n    <div id=\"visible-header\" class=\"row-header\" style=\"display: block\" ng-show=\"mdtPaginationHelper.getRows().length && !mtHideHeader\">\r\n        <div ng-cloak layout=\"row\" mdt-animate-sort-icon-handler flex>\r\n            <div\r\n                    ng-style=\"headerRowData.style\"\r\n                    class=\"th\"\r\n                    mdt-add-align-class=\"headerRowData.alignRule\"\r\n                    mdt-sort-handler\r\n                    md-ink-ripple=\"{{rippleEffect}}\"\r\n                    ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\r\n                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>\r\n            </div>\r\n            <div class=\"th flex-order-{{tableDataStorageService.header.length}}\" ng-if=\"isScrollVisible\" ng-style=\"{\'width\':scrollWidth,\'padding-right\':\'0\'}\"></div>\r\n        </div>\r\n    </div>\r\n    <div class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" ng-if=\"isSelectable\">\r\n        <md-list flex mtd-context-menu\r\n                 style=\"position: relative\"\r\n                 menu-list=\"menuList\"\r\n                 on-menu-selected=\"onMenuSelected(menuItem)\"\r\n                 on-popup=\"onPopup()\">\r\n            <md-virtual-repeat-container ng-style=\"mtHideHeader && {\'top\':\'10px\'} || {\'top\':\'0px\'}\" style=\"bottom:0;left:0;right:0;width:100%;position: absolute\">\r\n                <md-list-item md-virtual-repeat=\"rowData in tableDataStorageService.storage\"\r\n                              md-item-size=\"49\"\r\n                              aria-label=\"{{$index}}\"\r\n                              ng-class=\"{\'selectedRow\': rowData.optionList.selected}\"\r\n                              class=\"row-container\"\r\n                              on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\r\n                              ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\r\n                              mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\"\r\n                              mdt-table-row\r\n                              data-grid-id=\"gridId\"\r\n                              data-on-click=\"mdtPaginationHelper.onTouch(rowData)\"\r\n                              data-props=\"tableDataStorageService.header\"\r\n                              data-model=\"rowData\">\r\n                </md-list-item>\r\n            </md-virtual-repeat-container>\r\n        </md-list>\r\n    </div>\r\n    <div class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" ng-if=\"!isSelectable\">\r\n        <md-list flex style=\"position: relative\">\r\n            <md-virtual-repeat-container ng-style=\"mtHideHeader && {\'top\':\'10px\'} || {\'top\':\'0px\'}\" style=\"bottom:0;left:0;right:0;width:100%;position: absolute\">\r\n                <md-list-item md-virtual-repeat=\"rowData in tableDataStorageService.storage\"\r\n                              md-item-size=\"49\"\r\n                              aria-label=\"{{$index}}\"\r\n                              ng-class=\"{\'selectedRow\': rowData.optionList.selected}\"\r\n                              class=\"row-container\"\r\n                              mdt-table-row\r\n                              data-grid-id=\"gridId\"\r\n                              data-props=\"tableDataStorageService.header\"\r\n                              data-model=\"rowData\">\r\n                </md-list-item>\r\n            </md-virtual-repeat-container>\r\n        </md-list>\r\n    </div>\r\n\r\n\r\n    <!-- table card -->\r\n    <mdt-card-footer></mdt-card-footer>\r\n    <!-- table card end -->\r\n</md-content>");});
+angular.module("mdtTemplates", []).run(function($templateCache) {$templateCache.put("/main/templates/mdtAlternateHeaders.html","<div class=\"mdt-header-alternate\" layout=\"row\" layout-align=\"start center\">\n    <span class=\"alternate-text\" flex>{{tableDataStorageService.getNumberOfSelectedRows()}} item selected</span>\n    <md-button class=\"md-icon-button md-primary\" ng-click=\"deleteSelectedRows()\" aria-label=\"Delete selected rows\">\n        <ng-md-icon icon=\"delete\" size=\"24\"></ng-md-icon>\n    </md-button>\n\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\n    </md-button>\n</div>");
+$templateCache.put("/main/templates/mdtCardFooter.html","<div class=\"mdt-footer\" layout=\"row\" ng-show=\"isPaginationEnabled()\">\n    <div class=\"mdt-pagination\"\n         layout=\"row\"\n         layout-align=\"end center\"\n         flex>\n\n        <span layout-margin>Rows per page:</span>\n        <md-input-container>\n            <md-select ng-model=\"rowsPerPage\" aria-label=\"rows per page\">\n                <md-option ng-value=\"pageSize\" ng-repeat=\"pageSize in mdtPaginationHelper.rowsPerPageValues\">{{pageSize}}</md-option>\n            </md-select>\n        </md-input-container>\n\n        <span layout-margin>\n            {{mdtPaginationHelper.getStartRowIndex()+1}}-{{mdtPaginationHelper.getEndRowIndex()+1}} of {{mdtPaginationHelper.getTotalRowsCount()}}\n        </span>\n\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Previous page\" ng-click=\"mdtPaginationHelper.previousPage()\">\n            <ng-md-icon icon=\"keyboard_arrow_left\" size=\"24\"></ng-md-icon>\n        </md-button>\n\n        <md-button class=\"md-icon-button md-primary\" aria-label=\"Next page\" ng-click=\"mdtPaginationHelper.nextPage()\">\n            <ng-md-icon icon=\"keyboard_arrow_right\" size=\"24\"></ng-md-icon>\n        </md-button>\n    </div>\n</div>");
+$templateCache.put("/main/templates/mdtCardHeader.html","<div class=\"mdt-header\" layout=\"row\" layout-align=\"start center\" ng-show=\"isTableCardEnabled\">\n    <span flex>{{tableCard.title}}</span>\n<!--\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"Filter\">\n        <ng-md-icon icon=\"filter_list\" size=\"24\"></ng-md-icon>\n    </md-button>\n    <md-button class=\"md-icon-button md-primary\" aria-label=\"More options\">\n        <ng-md-icon icon=\"more_vert\" size=\"24\"></ng-md-icon>\n    </md-button>\n-->\n</div>");
+$templateCache.put("/main/templates/mdtDropdown.html","<md-whiteframe class=\"md-whiteframe-4dp md-whiteframe-z2\" layout=\"column\">\n  <md-button ng-if=\"menuItem.enabled\" class=\"mdt-dropdown-menu-item\" ng-repeat=\"menuItem in menuList\" ng-click=\"onMenuSelected(menuItem)\" layout=\"row\" aria-label=\"{{::menuItem.name}}\">\n    <md-icon md-font-icon=\"material-icons\">{{::menuItem.icon}}</md-icon> <span class=\"name\" ng-bind=\"::menuItem.name\" flex></span>\n  </md-button>\n</md-whiteframe>\n");
+$templateCache.put("/main/templates/mdtGeneratedHeaderCellContent.html","<div>\n    <div layout=\"row\" ng-if=\"sortableColumns\" style=\"display: inline-block;\">\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\n\n        <span ng-show=\"headerRowData.alignRule == \'right\'\">\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n        </span>\n\n        <span>\n            {{headerRowData.columnName}}\n        </span>\n\n        <span ng-show=\"headerRowData.alignRule == \'left\'\">\n            <span class=\"hoverSortIcons\" ng-if=\"!isSorted()\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n\n            <span class=\"sortedColumn\" ng-if=\"isSorted()\" ng-class=\"direction == -1 ? \'ascending\' : \'descending\'\">\n                <ng-md-icon icon=\"arrow_forward\" size=\"16\"></ng-md-icon>\n            </span>\n        </span>\n    </div>\n    <div ng-if=\"!sortableColumns\">\n        <md-tooltip ng-show=\"headerRowData.columnDefinition\">{{headerRowData.columnDefinition}}</md-tooltip>\n\n        <span>\n            {{headerRowData.columnName}}\n        </span>\n    </div>\n</div>");
+$templateCache.put("/main/templates/mdtTable.html","<md-content id=\"grid_{{gridId}}\" flex class=\"mdtTable md-whiteframe-z1\" layout=\"column\" style=\"box-shadow: none;\" ng-cloak ng-class=\"{\'invisible\': !tableIsReady}\">\n    <div ng-hide=\"mdtPaginationHelper.getRows().length\" flex layout=\"column\" layout-align=\"center center\" style=\"height: 100%\">\n        <span class=\"md-subhead\" ng-bind=\"mdtEmptyTitle\"></span>\n    </div>\n    <div id=\"visible-header\" class=\"row-header\" style=\"display: block\" ng-show=\"mdtPaginationHelper.getRows().length && !mtHideHeader\">\n        <div ng-cloak layout=\"row\" mdt-animate-sort-icon-handler flex>\n            <div\n                    ng-style=\"headerRowData.style\"\n                    class=\"th\"\n                    mdt-add-align-class=\"headerRowData.alignRule\"\n                    mdt-sort-handler\n                    md-ink-ripple=\"{{rippleEffect}}\"\n                    ng-repeat=\"headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index\" ng-class=\"headerRowData.class\">\n                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>\n            </div>\n            <div class=\"th flex-order-{{tableDataStorageService.header.length}}\" ng-if=\"isScrollVisible\" ng-style=\"{\'width\':scrollWidth,\'padding-right\':\'0\'}\"></div>\n        </div>\n    </div>\n    <div class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" ng-if=\"isSelectable\">\n        <md-list flex mtd-context-menu\n                 style=\"position: relative\"\n                 menu-list=\"menuList\"\n                 on-menu-selected=\"onMenuSelected(menuItem)\"\n                 on-popup=\"onPopup()\">\n            <md-virtual-repeat-container ng-style=\"mtHideHeader && {\'top\':\'10px\'} || {\'top\':\'0px\'}\" style=\"bottom:0;left:0;right:0;width:100%;position: absolute\">\n                <md-list-item md-virtual-repeat=\"rowData in tableDataStorageService.storage\"\n                              md-item-size=\"49\"\n                              aria-label=\"{{$index}}\"\n                              ng-class=\"{\'selectedRow\': rowData.optionList.selected}\"\n                              class=\"row-container\"\n                              on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\n                              ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\n                              mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\"\n                              mdt-table-row\n                              data-grid-id=\"gridId\"\n                              data-on-click=\"mdtPaginationHelper.onTouch(rowData)\"\n                              data-props=\"tableDataStorageService.header\"\n                              data-model=\"rowData\">\n                </md-list-item>\n            </md-virtual-repeat-container>\n        </md-list>\n    </div>\n    <div class=\"data-container\" flex layout=\"column\" ng-show=\"mdtPaginationHelper.getRows().length\" ng-if=\"!isSelectable\">\n        <md-list flex style=\"position: relative\">\n\n            <md-virtual-repeat-container ng-style=\"mtHideHeader && {\'top\':\'10px\'} || {\'top\':\'0px\'}\" style=\"bottom:0;left:0;right:0;width:100%;position: absolute\">\n                <md-list-item md-virtual-repeat=\"rowData in tableDataStorageService.storage\"\n                              md-item-size=\"49\"\n                              aria-label=\"{{$index}}\"\n                              class=\"row-container\"\n                              on-long-press=\"mdtPaginationHelper.selectRow(rowData)\"\n                              ng-dblclick=\"mdtPaginationHelper.dblclick(rowData)\"\n                              mtd-right-click=\"mdtPaginationHelper.selectRow(rowData)\"\n                              mdt-table-row\n                              data-grid-id=\"gridId\"\n                              data-on-click=\"mdtPaginationHelper.onTouch(rowData)\"\n                              data-props=\"tableDataStorageService.header\"\n                              data-model=\"rowData\">\n                </md-list-item>\n            </md-virtual-repeat-container>\n        </md-list>\n    </div>\n\n\n    <!-- table card -->\n    <mdt-card-footer></mdt-card-footer>\n    <!-- table card end -->\n</md-content>");});

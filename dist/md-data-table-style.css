@@ -55,14 +55,14 @@
   /* new algorithm mises the calculation of the width */
 }
 .mdtTable .td {
-  display: -webkit-flex;
+  display: flex;
   padding: 0 6px;
 }
 .mdtTable .td:focus {
   outline: none;
 }
 .mdtTable .th {
-  display: -webkit-flex;
+  display: flex;
   padding: 0 6px;
   height: 56px;
   line-height: 56px;

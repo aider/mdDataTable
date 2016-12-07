@@ -71,6 +71,12 @@
                     data: item
                 });
             });
+            if (this.sortByColumnLastIndex >= 0) {
+                this.sortByColumnIndex(this.sortByColumnLastIndex, undefined, this.sortFunction);
+                if(!this.orderByAscending) {
+                    this.storage.reverse();
+                }
+            }
         };
         TableDataStorageService.prototype.addHeaderCellData = function (ops) {
             this.header.push(ops);
@@ -133,37 +139,40 @@
             this.storage.reverse();
         };
 
-        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee) {
-            if (this.sortByColumnLastIndex === columnIndex) {
+        TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee, manual) {
+            debugger;
+            if (this.sortByColumnLastIndex === columnIndex && !manual) {
                 this.reverseRows();
 
                 this.orderByAscending = !this.orderByAscending;
             } else {
                 this.sortByColumnIndex(columnIndex, iteratee);
-
-                this.sortByColumnLastIndex = columnIndex;
                 this.orderByAscending = true;
             }
-
+            this.sortByColumnLastIndex = columnIndex;
             return this.orderByAscending ? -1 : 1;
         };
 
-        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee) {
+        TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee, _sortFunction) {
+            debugger;
+            if (!_sortFunction) {
+                if (typeof iteratee === 'function') {
+                    _sortFunction = function (rowData) {
+                        return iteratee(rowData.data[index], rowData, index);
+                    };
+                } else {
+                    var id = this.header[index] ? this.header[index].id : undefined;
+                    _sortFunction = function (rowData) {
 
-            var sortFunction;
-            if (typeof iteratee === 'function') {
-                sortFunction = function (rowData) {
-                    return iteratee(rowData.data[index], rowData, index);
-                };
+                        return rowData.data[id || index];
+                    };
+                }
+                this.sortFunction = _sortFunction;
             } else {
-                var id = this.header[index] ? this.header[index].id : undefined;
-                sortFunction = function (rowData) {
-
-                    return rowData.data[id || index];
-                };
+                _sortFunction = this.sortFunction;
             }
 
-            this.storage = _.sortBy(this.storage, sortFunction);
+            this.storage = _.sortBy(this.storage, _sortFunction);
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {

@@ -140,7 +140,6 @@
         };
 
         TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee, manual) {
-            debugger;
             if (this.sortByColumnLastIndex === columnIndex && !manual) {
                 this.reverseRows();
 
@@ -154,7 +153,6 @@
         };
 
         TableDataStorageService.prototype.sortByColumnIndex = function (index, iteratee, _sortFunction) {
-            debugger;
             if (!_sortFunction) {
                 if (typeof iteratee === 'function') {
                     _sortFunction = function (rowData) {

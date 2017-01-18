@@ -1,13 +1,13 @@
 <div>
-    <div layout="row" ng-if="sortableColumns" style="display: inline-block;">
+    <div layout="row" ng-show="sortableColumns" style="display: inline-block;">
         <md-tooltip ng-show="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
         <span ng-show="headerRowData.alignRule == 'right'">
-            <span class="hoverSortIcons" ng-if="!isSorted()">
+            <span class="hoverSortIcons" ng-show="!isSorted()">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>
 
-            <span class="sortedColumn" ng-if="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
+            <span class="sortedColumn" ng-show="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>
         </span>
@@ -17,16 +17,16 @@
         </span>
 
         <span ng-show="headerRowData.alignRule == 'left'">
-            <span class="hoverSortIcons" ng-if="!isSorted()">
+            <span class="hoverSortIcons" ng-show="!isSorted()">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>
 
-            <span class="sortedColumn" ng-if="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
+            <span class="sortedColumn" ng-show="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>
         </span>
     </div>
-    <div ng-if="!sortableColumns">
+    <div ng-show="!sortableColumns">
         <md-tooltip ng-show="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
         <span>

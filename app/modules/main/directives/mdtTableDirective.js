@@ -180,6 +180,7 @@
                 $scope.gridId = $scope.$id;
                 injectContentIntoTemplate();
                 $scope.isSelectable = angular.isDefined(attrs.mdtSelectFn);
+
                 $scope.isAnyRowSelected = _.bind($scope.tableDataStorageService.isAnyRowSelected, $scope.tableDataStorageService);
                 $scope.isPaginationEnabled = isPaginationEnabled;
 

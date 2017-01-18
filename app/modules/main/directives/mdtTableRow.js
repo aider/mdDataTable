@@ -50,7 +50,11 @@
                                 if (prop.type === 'html') {
                                     rowTemplate.push('<span ng-bind-html="trustAsHtml(props[\'' + index + '\'].content(model))"></span>');
                                 } else if (prop.type === 'date') {
-                                    rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | dateFilter:\'&#8212\'}}</span>');
+                                    if (prop.format) {
+                                        rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | date:\'' + prop.format + '\' | ifEmpty:\'&#8212\'}}</span>');
+                                    } else {
+                                        rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | dateFilter:\'&#8212\'}}</span>');
+                                    }
                                 } else if (angular.isFunction(prop.content)) {
                                     rowTemplate.push('<span>{{props[\'' + index + '\'].content(model) | ifEmpty:\'&#8212\'}}</span>');
                                 } else {

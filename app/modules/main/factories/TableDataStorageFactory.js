@@ -92,6 +92,8 @@
                 });
             });
             var _tableWidth = 0;
+            header.style = header.style || {};
+
             _header.forEach(function (header, index) {
                 if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
                     header.style['width'] = Math.round(_maxWidth[header.id]);

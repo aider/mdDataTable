@@ -1,12 +1,19 @@
 (function () {
     'use strict';
 
+    if (!String.prototype.trim) {
+        String.prototype.trim = function () {
+            return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+        };
+    }
+
     function TableDataStorageFactory($log) {
 
         function TableDataStorageService() {
             this.srcModel = {};
             this.storage = [];
             this.header = [];
+            this.tableWidth = 0;
             this.maxRow = {data: {}};
             this.maxWidth = {};
 
@@ -31,7 +38,7 @@
 
             var canvas = document.createElement("canvas");
             var context = canvas.getContext("2d");
-            //context.font = font;
+            context.font = '500 12px Roboto';
             var orderIndex = 0;
             _header.forEach(function (header, index) {
                 header.class = header.class || '';
@@ -43,12 +50,26 @@
                 // } else {
                 //     // header.class
                 // }
+
+                var _value = header.columnName;
+                var metrics = context.measureText(_value);
+                var _width = metrics.width + 45;
+
+                if (!_maxRow[header.id]) {
+                    _maxRow[header.id] = _value;
+                    _maxWidth[header.id] = _width;
+                } else if (_maxWidth[header.id] < _width) {
+                    _maxRow[header.id] = _value;
+                    _maxWidth[header.id] = _width;
+                }
+
             });
+            context.font = '400 13px Roboto';
             mdtModel.data.forEach(function (item) {
                 _header.forEach(function (header, index) {
                     var _value = item[header.id];
                     var metrics = context.measureText(_value);
-                    var _width = metrics.width;
+                    var _width = metrics.width + 45;
 
                     if (!_maxRow[header.id]) {
                         _maxRow[header.id] = _value;
@@ -58,7 +79,6 @@
                         _maxWidth[header.id] = _width;
                     }
                 });
-
 
                 var id = item.id;
                 _storage.push({
@@ -71,9 +91,24 @@
                     data: item
                 });
             });
+            var _tableWidth = 0;
+            _header.forEach(function (header, index) {
+                if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
+                    header.style['width'] = Math.round(_maxWidth[header.id]);
+                }
+                if (!header.style['min-width'] || header.style['min-width'] < _maxWidth[header.id] - _maxWidth[header.id] / 100 * 45) {
+                    header.style['min-width'] = Math.round(_maxWidth[header.id] - _maxWidth[header.id] / 100 * 25);
+                }
+
+                _tableWidth += header.style['min-width'] + (index === 0 ? 16 + 6 : 6 + 6);
+
+            });
+
+            this.tableWidth = _tableWidth;
+
             if (this.sortByColumnLastIndex >= 0) {
                 this.sortByColumnIndex(this.sortByColumnLastIndex, undefined, this.sortFunction);
-                if(!this.orderByAscending) {
+                if (!this.orderByAscending) {
                     this.storage.reverse();
                 }
             }
@@ -162,15 +197,17 @@
                     var id = this.header[index] ? this.header[index].id : undefined;
                     _sortFunction = function (rowData) {
 
-                        return rowData.data[id || index];
+                        var datum = rowData.data[id || index];
+
+                        return !angular.isDefined(datum) || datum == null || /^\s*$/.test(datum) ? undefined : datum.trim();
                     };
                 }
                 this.sortFunction = _sortFunction;
             } else {
                 _sortFunction = this.sortFunction;
             }
-
             this.storage = _.sortBy(this.storage, _sortFunction);
+
         };
 
         TableDataStorageService.prototype.isAnyRowSelected = function () {

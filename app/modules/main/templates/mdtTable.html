@@ -1,4 +1,4 @@
-<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1" layout="column" style="box-shadow: none;" ng-cloak ng-class="{'invisible': !tableIsReady}">
+<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1" ng-style="{'min-width':tableDataStorageService.tableWidth}" layout="column" style="width:100%;box-shadow: none;overflow-x: hidden;" ng-cloak ng-class="{'invisible': !tableIsReady}">
 
 
     <div ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center" style="height: 100%">
@@ -62,11 +62,4 @@
             </md-virtual-repeat-container>
         </md-list>
     </div>
-
-
-    <!-- table card -->
-    <mdt-card-footer></mdt-card-footer>
-    <!-- table card end -->
-
-
 </md-content>

@@ -39,7 +39,11 @@
                                 var style = '';
                                 Object.keys(prop.style).forEach(function (kstyle) {
                                     // if(kstyle)
-                                    style += kstyle + ':' + prop.style[kstyle] + ';';
+                                    var pValue = prop.style[kstyle];
+                                    if (!isNaN(+pValue)) {
+                                        pValue += 'px'
+                                    }
+                                    style += kstyle + ':' + pValue + ';';
                                 });
 
 

@@ -1,10 +1,8 @@
-<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1" ng-style="{'min-width':tableDataStorageService.tableWidth}" layout="column" style="width:100%;box-shadow: none;overflow-x: hidden;" ng-cloak ng-class="{'invisible': (!tableIsReady || !tableDataStorageService.tableWidth)}">
-
-
+<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1" ng-style="{'min-width':tableDataStorageService.tableWidth}" layout="column" style="width:100%;box-shadow: none;overflow-x: hidden;" ng-cloak ng-class="{'invisible': (!tableIsReady)}">
     <div ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center" style="height: 100%">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
     </div>
-    <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length && !mtHideHeader">
+    <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length && !mtHideHeader && tableDataStorageService.tableWidth">
         <div ng-cloak layout="row" mdt-animate-sort-icon-handler flex>
             <div
                     ng-style="headerRowData.style"
@@ -18,7 +16,7 @@
             <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></div>
         </div>
     </div>
-    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" ng-if="isSelectable">
+    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length && tableDataStorageService.tableWidth" ng-if="isSelectable">
         <md-list flex mtd-context-menu
                  style="position: relative"
                  menu-list="menuList"
@@ -42,7 +40,7 @@
             </md-virtual-repeat-container>
         </md-list>
     </div>
-    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length" ng-if="!isSelectable">
+    <div class="data-container" flex layout="column" ng-show="mdtPaginationHelper.getRows().length && tableDataStorageService.tableWidth" ng-if="!isSelectable">
         <md-list flex style="position: relative">
 
             <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'0px'}" style="bottom:0;left:0;right:0;width:100%;position: absolute">

@@ -84,7 +84,7 @@
 
                     var isEmpty = !angular.isDefined(_value) || _value == null || /^\s*$/.test(_value);
                     _avgNonEmpty[header.id] += isEmpty ? 0 : 1;
-                    _avgWidth[header.id] += isEmpty ? 0 :_width;
+                    _avgWidth[header.id] += isEmpty ? 0 : _width;
                     if (!_maxRow[header.id]) {
                         _maxRow[header.id] = _value;
                         _maxWidth[header.id] = _width;
@@ -93,7 +93,6 @@
                         _maxWidth[header.id] = _width;
                     }
                 });
-
                 var id = item.id;
                 _storage.push({
                     rowId: id,
@@ -107,9 +106,8 @@
             });
             var _tableWidth = 0;
 
-
             _header.forEach(function (header, index) {
-                _avgWidth[header.id] = _avgWidth[header.id] / _avgNonEmpty[header.id];
+                _avgWidth[header.id] = _avgWidth[header.id] / (_avgNonEmpty[header.id] > 0 ? _avgNonEmpty[header.id] : 1);
                 if (_avgWidth[header.id] < _headerWidth[header.id]) {
                     _avgWidth[header.id] = _headerWidth[header.id];
                 }
@@ -121,7 +119,6 @@
                 if (!header.style['min-width'] || header.style['min-width'] < _avgWidth[header.id]) {
                     header.style['min-width'] = Math.round(_avgWidth[header.id]);
                 }
-
                 _tableWidth += header.style['min-width'] + (index === 0 ? 16 + 6 : 6 + 6);
 
             });

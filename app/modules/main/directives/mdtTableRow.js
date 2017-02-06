@@ -59,6 +59,8 @@
                                     } else {
                                         rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | dateFilter:\'&#8212\'}}</span>');
                                     }
+                                } else if (prop.type === 'datetime') {
+                                    rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | date:\'M/d/yyyy h:mm a\' | ifEmpty:\'&#8212\'}}</span>');
                                 } else if (angular.isFunction(prop.content)) {
                                     rowTemplate.push('<span>{{props[\'' + index + '\'].content(model) | ifEmpty:\'&#8212\'}}</span>');
                                 } else {

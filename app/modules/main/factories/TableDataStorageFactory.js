@@ -16,6 +16,7 @@
             this.tableWidth = 0;
             this.maxRow = {data: {}};
             this.maxWidth = {};
+            this.avgWidth = {};
 
             this.sortByColumnLastIndex = null;
             this.orderByAscending = true;
@@ -35,6 +36,9 @@
             var _storage = this.storage;
             var _maxRow = this.maxRow.data;
             var _maxWidth = this.maxWidth;
+            var _avgWidth = this.avgWidth;
+            var _avgNonEmpty = {};
+            var _headerWidth = {};
 
             var canvas = document.createElement("canvas");
             var context = canvas.getContext("2d");
@@ -54,7 +58,7 @@
                 var _value = header.columnName;
                 var metrics = context.measureText(_value);
                 var _width = metrics.width + 45;
-
+                _headerWidth[header.id] = _width;
                 if (!_maxRow[header.id]) {
                     _maxRow[header.id] = _value;
                     _maxWidth[header.id] = _width;
@@ -65,12 +69,22 @@
 
             });
             context.font = '400 13px Roboto';
+
             mdtModel.data.forEach(function (item) {
                 _header.forEach(function (header, index) {
                     var _value = item[header.id];
                     var metrics = context.measureText(_value);
                     var _width = metrics.width + 45;
+                    if (!_avgWidth[header.id]) {
+                        _avgWidth[header.id] = 0;
+                    }
+                    if (!_avgNonEmpty[header.id]) {
+                        _avgNonEmpty[header.id] = 0;
+                    }
 
+                    var isEmpty = !angular.isDefined(_value) || _value == null || /^\s*$/.test(_value);
+                    _avgNonEmpty[header.id] += isEmpty ? 0 : 1;
+                    _avgWidth[header.id] += isEmpty ? 0 :_width;
                     if (!_maxRow[header.id]) {
                         _maxRow[header.id] = _value;
                         _maxWidth[header.id] = _width;
@@ -95,12 +109,17 @@
 
 
             _header.forEach(function (header, index) {
+                _avgWidth[header.id] = _avgWidth[header.id] / _avgNonEmpty[header.id];
+                if (_avgWidth[header.id] < _headerWidth[header.id]) {
+                    _avgWidth[header.id] = _headerWidth[header.id];
+                }
+
                 header.style = header.style || {};
                 if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
                     header.style['width'] = Math.round(_maxWidth[header.id]);
                 }
-                if (!header.style['min-width'] || header.style['min-width'] < _maxWidth[header.id] - _maxWidth[header.id] / 100 * 45) {
-                    header.style['min-width'] = Math.round(_maxWidth[header.id] - _maxWidth[header.id] / 100 * 25);
+                if (!header.style['min-width'] || header.style['min-width'] < _avgWidth[header.id]) {
+                    header.style['min-width'] = Math.round(_avgWidth[header.id]);
                 }
 
                 _tableWidth += header.style['min-width'] + (index === 0 ? 16 + 6 : 6 + 6);

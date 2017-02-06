@@ -738,6 +738,26 @@
     angular.module('material.components.table').directive('mdtTableRow', ['superCache', '$compile', '$sce', 'mdtPaginationHelperFactory', mdtTableRow]);
 })();
 
+(function(){
+    'use strict';
+
+    function ColumnAlignmentHelper(ColumnOptionProvider){
+        var service = this;
+        service.getColumnAlignClass = getColumnAlignClass;
+
+        function getColumnAlignClass(alignRule) {
+            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
+                return 'rightAlignedColumn';
+            } else {
+                return 'leftAlignedColumn';
+            }
+        }
+    }
+
+    angular
+        .module('material.components.table')
+        .service('ColumnAlignmentHelper', ['ColumnOptionProvider', ColumnAlignmentHelper]);
+}());
 (function () {
     'use strict';
 
@@ -845,7 +865,6 @@
                 });
             });
             var _tableWidth = 0;
-            debugger;
 
             _header.forEach(function (header, index) {
                 _avgWidth[header.id] = _avgWidth[header.id] / (_avgNonEmpty[header.id] > 0 ? _avgNonEmpty[header.id] : 1);
@@ -1266,26 +1285,6 @@
     angular
         .module('material.components.table')
         .service('mdtPaginationHelperFactory', mdtPaginationHelperFactory);
-}());
-(function(){
-    'use strict';
-
-    function ColumnAlignmentHelper(ColumnOptionProvider){
-        var service = this;
-        service.getColumnAlignClass = getColumnAlignClass;
-
-        function getColumnAlignClass(alignRule) {
-            if (alignRule === ColumnOptionProvider.ALIGN_RULE.ALIGN_RIGHT) {
-                return 'rightAlignedColumn';
-            } else {
-                return 'leftAlignedColumn';
-            }
-        }
-    }
-
-    angular
-        .module('material.components.table')
-        .service('ColumnAlignmentHelper', ['ColumnOptionProvider', ColumnAlignmentHelper]);
 }());
 (function(){
     'use strict';

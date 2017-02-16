@@ -12,10 +12,11 @@
             </span>
         </span>
 
-        <span ng-hide="headerRowData.html">
+        <!--<span ng-hide="headerRowData.html">-->
+        <span>
             {{headerRowData.columnName}}
         </span>
-        <div ng-bind-html="headerRowData.html"></div>
+        <!--<div ng-show="headerRowData.html" ng-bind-html="headerRowData.html"></div>-->
         <span ng-show="headerRowData.alignRule == 'left'">
             <span class="hoverSortIcons" ng-show="!isSorted()">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>

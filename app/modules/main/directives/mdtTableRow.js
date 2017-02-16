@@ -31,7 +31,7 @@
                         // superCache.put('sortedProps', sortedProps);
                         if (!isOnClickExists) {
                             // rowTemplate.push('<button class="md-no-style md-button md-ink-ripple" type="button" ng-click="onTouch(model)">');
-                            rowTemplate.push('<div class="md-button md-no-style"><button class="md-no-style md-button md-ink-ripple" type="button" ng-click="onClick(model)"></button><div class="md-list-item-inner">');
+                            rowTemplate.push('<div class="md-button md-no-style"><button class="md-no-style md-button" type="button" ng-click="onClick(model)"></button><div class="md-list-item-inner">');
                         }
 
                         sortedProps.forEach(function (prop, index) {
@@ -53,6 +53,10 @@
                                 rowTemplate.push('<div class="first-column-section">');
                                 if (prop.type === 'html') {
                                     rowTemplate.push('<span ng-bind-html="trustAsHtml(props[\'' + index + '\'].content(model))"></span>');
+                                } else if (prop.type === 'currency') {
+                                    rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | currency:\'$\' | ifEmpty:\'&#8212\'}}</span>');
+                                } else if (prop.type === 'number') {
+                                    rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | number:0 | ifEmpty:\'&#8212\'}}</span>');
                                 } else if (prop.type === 'date') {
                                     if (prop.format) {
                                         rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | date:\'' + prop.format + '\' | ifEmpty:\'&#8212\'}}</span>');

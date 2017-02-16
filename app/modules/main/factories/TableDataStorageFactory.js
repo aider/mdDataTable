@@ -72,7 +72,7 @@
 
             mdtModel.data.forEach(function (item) {
                 _header.forEach(function (header, index) {
-                    var _value = item[header.id];
+                    var _value = angular.isArray(item[header.id]) ? item[header.id].join(' ') : item[header.id];
                     var metrics = context.measureText(_value);
                     var _width = metrics.width + 45;
                     if (!_avgWidth[header.id]) {
@@ -104,6 +104,10 @@
                     data: item
                 });
             });
+            _header.forEach(function (header) {
+                _maxWidth[header.id] = 3 * _maxWidth[header.id];
+
+            });
             var _tableWidth = 0;
 
             _header.forEach(function (header, index) {
@@ -116,14 +120,14 @@
                 if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
                     header.style['width'] = Math.round(_maxWidth[header.id]);
                 }
-                if (!header.style['min-width'] || header.style['min-width'] < _avgWidth[header.id]) {
+                if (!header.style['min-width'] && mdtModel.data.length) {
                     header.style['min-width'] = Math.round(_avgWidth[header.id]);
                 }
-                _tableWidth += header.style['min-width'] + (index === 0 ? 16 + 6 : 6 + 6);
-
+                _tableWidth += +header.style['min-width'].replace('px', '') + (index === 0 ? 16 + 6 : 6 + 6);
             });
 
             this.tableWidth = _tableWidth;
+            this.tableWidthStyle = 'min-width:' + _tableWidth + 'px';
 
             if (this.sortByColumnLastIndex >= 0) {
                 this.sortByColumnIndex(this.sortByColumnLastIndex, undefined, this.sortFunction);
@@ -217,8 +221,10 @@
                     _sortFunction = function (rowData) {
 
                         var datum = rowData.data[id || index];
-
-                        return !angular.isDefined(datum) || datum == null || /^\s*$/.test(datum) ? undefined : datum.trim();
+                        if (angular.isArray(datum)) {
+                            datum = datum.join(' ');
+                        }
+                        return !angular.isDefined(datum) || datum == null || /^\s*$/.test(datum) ? undefined : (angular.isNumber(datum) ? datum : datum.trim());
                     };
                 }
                 this.sortFunction = _sortFunction;

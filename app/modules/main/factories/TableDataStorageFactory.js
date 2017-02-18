@@ -22,10 +22,11 @@
             this.orderByAscending = true;
         }
 
-        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn, touchCbFn, dblClickCbFn, contextMenuFn, onPopup) {
+        TableDataStorageService.prototype.initModel = function (mdtModel, selectCbFn, touchCbFn, dblClickCbFn, contextMenuFn, onPopup, mdtMultiSelect) {
             this.storage = [];
             this.maxRow = {data: {}};
             this.maxWidth = {};
+            this.multiSelect = mdtMultiSelect === 'true' ;
 
             this.selectCbFn = selectCbFn;
             this.dblClickCbFn = dblClickCbFn;
@@ -33,6 +34,7 @@
             this.contextMenuFn = contextMenuFn;
             this.onPopup = onPopup;
             var _header = this.header = mdtModel.headers;
+            // _header.push({id: 'checkbox', columnName: '', type: 'checkbox'});
             var _storage = this.storage;
             var _maxRow = this.maxRow.data;
             var _maxWidth = this.maxWidth;
@@ -45,9 +47,11 @@
             context.font = '500 12px Roboto';
             var orderIndex = 0;
             _header.forEach(function (header, index) {
+                header.sortable = angular.isDefined(header.sortable) ? !!header.sortable : true;
                 header.class = header.class || '';
                 header.class += ' flex-order-' + orderIndex;
                 orderIndex++;
+
                 // if (header.secondColumn) {
                 //     header.class += ' first-column-section';
                 //     header.secondColumn.class += ' flex-order-' + orderIndex;
@@ -129,14 +133,16 @@
                 }
 
                 header.style = header.style || {};
-                if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
+                if (!header.style['width'] || (header.type !== 'html' && header.style['width'] < _maxWidth[header.id])) {
+                // if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
                     header.style['width'] = Math.round(_maxWidth[header.id]);
                 }
                 var minWidthStyle = header.style['min-width'];
                 if (!minWidthStyle && mdtModel.data.length) {
-                    header.style['min-width'] = Math.round(_avgWidth[header.id]);
+                    minWidthStyle = header.style['min-width'] = Math.round(_avgWidth[header.id]);
                 }
                 var minWidth = 0;
+
                 if (angular.isDefined(minWidthStyle)) {
                     if (angular.isNumber(minWidthStyle)) {
                         minWidth = minWidthStyle;
@@ -205,10 +211,10 @@
                 var rowData = this.storage[i];
                 if (isPaginationEnabled) {
                     if (rowData.optionList.visible) {
-                        rowData.optionList.selected = isSelected ? true : false;
+                        rowData.optionList.selected = !!isSelected;
                     }
                 } else {
-                    rowData.optionList.selected = isSelected ? true : false;
+                    rowData.optionList.selected = !!isSelected;
                 }
 
             }
@@ -217,6 +223,10 @@
         TableDataStorageService.prototype.reverseRows = function () {
             this.storage.reverse();
         };
+
+        // TableDataStorageService.prototype.isSortable = function (columnIndex) {
+        //     return this.header[index].sortable;
+        // };
 
         TableDataStorageService.prototype.sortByColumn = function (columnIndex, iteratee, manual) {
             if (this.sortByColumnLastIndex === columnIndex && !manual) {

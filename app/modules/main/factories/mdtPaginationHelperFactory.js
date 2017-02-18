@@ -64,20 +64,24 @@
         };
 
         mdtPaginationHelper.prototype.selectRow = function (rowData) {
-            rowData.optionList.selected = true;
+            rowData.optionList.selected = !rowData.optionList.selected;
 
 
-            if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {
-                this.tableDataStorageService.selectedRow.optionList.selected = false;
+            var dss = this.tableDataStorageService;
+            if (!dss.multiSelect) {
+                if (dss.selectedRow && rowData != dss.selectedRow) {
+                    dss.selectedRow.optionList.selected = false;
+                }
+                dss.selectedRow = rowData;
             }
-            this.tableDataStorageService.selectedRow = rowData;
-            this.tableDataStorageService.selectCbFn({rowData: rowData});
+            dss.selectCbFn({rowData: rowData});
 
         };
         mdtPaginationHelper.prototype.onTouch = function (rowData) {
             var isMobile = /iPhone|iPod|iPad|Android/i.test(navigator.userAgent);
-            rowData.optionList.selected = true;
+
             if (isMobile) {
+                rowData.optionList.selected = !rowData.optionList.selected;
                 this.dblclick(rowData);
                 /*
                  if (this.tableDataStorageService.selectedRow && rowData != this.tableDataStorageService.selectedRow) {

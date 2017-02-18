@@ -97,6 +97,7 @@
             replace: true,
             scope: {
                 tableCard: '=',
+                mdtMultiSelect: '@',
                 selectableRows: '=',
                 alternateHeaders: '=',
                 sortableColumns: '=',
@@ -156,7 +157,7 @@
                                 }, 500);
                             }
                             if (data && angular.isArray(data)) {
-                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup);
+                                $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup, $scope.mdtMultiSelect);
 
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
                                 if (rowsLength) {
@@ -190,6 +191,10 @@
                 $scope.onMenuSelected = function (menuItem) {
                     $scope.mdtMenuSelected({menuItem: menuItem});
                 };
+
+                // $scope.$on('mdt-table.select-all', function (event, selected) {
+                //     $scope.tableDataStorageService.setAllRowsSelected(selected);
+                // });
 
                 function getScrollbarWidth() {
                     var outer = document.createElement("div");
@@ -256,26 +261,8 @@
                             return
                         }
                         $scope.isScrollVisible = rowsLength * 48 > $dc.height();
-                        // if($scope.isScrollVisible) {
-                        //     debugger;
-                        // }
                     });
 
-                    /*
-                     var height = $scope.hiddenHeadHeight();
-                     if (!height && !$scope.tableDataIsReady) {
-                     $timeout(function () {
-                     $scope.watiForHeight();
-                     });
-                     } else {
-                     $('#data-table', element).css('margin-top', height);
-                     $timeout(function () {
-                     var $dc = $('.data-container', element);
-                     $scope.isScrollVisible = $dc.get(0).scrollHeight > $dc.height();
-                     });
-                     $scope.tableIsReady = true;
-                     }
-                     */
                 };
 
                 // $scope.watiForHeight();

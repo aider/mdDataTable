@@ -50,9 +50,10 @@
                                 // (prop.onClick ? ' ng-click="props[\'' + index + '\'].onClick(model)"' : '')
                                 // rowTemplate.push('<div class="td ' + prop.class +'" '+  + style = "' + style + '" > ');
                                 rowTemplate.push('<div class="td ' + prop.class + '" ' + (prop.onClick ? ' ng-click="props[\'' + index + '\'].onClick(model)"' : '') + ' style="' + style + '" > ');
-                                rowTemplate.push('<div class="first-column-section">');
+                                rowTemplate.push('<div class="first-column-section" '+(prop.type==='html' ? 'style="display: inline-block;"':'')+'>');
+
                                 if (prop.type === 'html') {
-                                    rowTemplate.push('<span ng-bind-html="trustAsHtml(props[\'' + index + '\'].content(model))"></span>');
+                                    rowTemplate.push('<div ng-bind-html="trustAsHtml(props[\'' + index + '\'].content(model))"></div>');
                                 } else if (prop.type === 'currency') {
                                     rowTemplate.push('<span>{{(props[\'' + index + '\'].content(model) || model.data[\'' + prop.id + '\']) | currency:\'$\' | ifEmpty:\'&#8212\'}}</span>');
                                 } else if (prop.type === 'number') {

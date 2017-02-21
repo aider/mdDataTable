@@ -98,9 +98,14 @@
             scope: {
                 tableCard: '=',
                 mdtMultiSelect: '@',
+                //@deprecated
                 selectableRows: '=',
-                alternateHeaders: '=',
+                //@deprecated
                 sortableColumns: '=',
+
+                alternateHeaders: '=',
+                mdtSelectable: '@',
+                mdtSortable: '@',
                 deleteRowCallback: '&',
                 animateSortIcon: '=',
                 rippleEffect: '=',
@@ -121,6 +126,7 @@
                 onPopup: "&"
             },
             controller: ['$scope', function ($scope) {
+                $scope.selectable = $scope.mdtSelectable !== 'false';
 
                 var vm = this;
                 vm.addHeaderCell = addHeaderCell;
@@ -178,6 +184,8 @@
 
             }],
             link: function ($scope, element, attrs, ctrl, transclude) {
+                $scope.sortable = $scope.mdtSortable !== 'false';
+
                 $scope.gridId = $scope.$id;
                 injectContentIntoTemplate();
                 $scope.isSelectable = angular.isDefined(attrs.mdtSelectFn);
@@ -250,13 +258,13 @@
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 1;
-                        var baseContainer = $('#grid_'+$scope.gridId);
-                        if(!baseContainer.length) {
+                        var baseContainer = $('#grid_' + $scope.gridId);
+                        if (!baseContainer.length) {
                             unbindCollection();
                             return;
                         }
                         var $dc = $('.data-container', baseContainer);
-                        if(!$dc.is(':visible')) {
+                        if (!$dc.is(':visible')) {
                             $scope.watiForHeight(rowsLength, unbindCollection);
                             return
                         }
@@ -405,8 +413,8 @@
                 var dateFilter = $filter('date');
                 var dateFormated = dateFilter(inputDate, 'MMM dd, yyyy');
                 var currentFormated = dateFilter(Date.now(), 'MMM dd, yyyy');
-                
-                if(currentFormated === dateFormated){
+
+                if (currentFormated === dateFormated) {
                     dateFormated = dateFilter(inputDate, 'h:mm a');
                 }
                 return dateFormated;

@@ -5,7 +5,7 @@
     <div ng-if="headerRowData.columnType != 'html'" layout="row" ng-show="sortableColumns && headerRowData.sortable" style="display: inline-block;">
         <md-tooltip ng-show="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
-        <span ng-if="headerRowData.sortable" ng-show="headerRowData.alignRule == 'right'">
+        <span ng-show="headerRowData.alignRule == 'right' && headerRowData.sortable">
             <span class="hoverSortIcons" ng-show="!isSorted()">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>
@@ -17,7 +17,7 @@
         <span>
             {{headerRowData.columnName}}
         </span>
-        <span ng-show="headerRowData.alignRule == 'left'">
+        <span ng-show="headerRowData.alignRule == 'left' && headerRowData.sortable">
             <span class="hoverSortIcons" ng-show="!isSorted()">
                 <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
             </span>

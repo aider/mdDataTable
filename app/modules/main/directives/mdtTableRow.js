@@ -9,6 +9,7 @@
                 gridId: '=',
                 props: '=',
                 model: '=',
+                selectable: '=',
                 onClick: '&'
             },
             link: function (scope, element, attrs) {
@@ -29,7 +30,8 @@
                             return !!item.onClick;
                         });
                         // superCache.put('sortedProps', sortedProps);
-                        if (!isOnClickExists) {
+
+                        if (!isOnClickExists && scope.selectable) {
                             // rowTemplate.push('<button class="md-no-style md-button md-ink-ripple" type="button" ng-click="onTouch(model)">');
                             rowTemplate.push('<div class="md-button md-no-style"><button class="md-no-style md-button" type="button" ng-click="onClick(model)"></button><div class="md-list-item-inner">');
                         }

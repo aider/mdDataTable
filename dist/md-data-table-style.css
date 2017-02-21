@@ -208,7 +208,7 @@
   background-color: #EEEEEE;
   border-bottom: 1px solid #E0E0E0;
 }
-.mdtTable .noselect, .mdtTable table tr {
+.mdtTable .noselect, .mdtTable table tr, .mdtTable table th {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;

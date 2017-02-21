@@ -1,16 +1,29 @@
-<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1"  layout="column" style="width:100%;box-shadow: none;overflow-x: hidden;{{tableDataStorageService.tableWidthStyle}}" ng-cloak ng-class="{'invisible': (!tableIsReady)}">
+<md-content id="grid_{{gridId}}" flex class="mdtTable md-whiteframe-z1" layout="column" style="width:100%;box-shadow: none;overflow-x: hidden;{{tableDataStorageService.tableWidthStyle}}" ng-cloak ng-class="{'invisible': (!tableIsReady)}">
     <div ng-hide="mdtPaginationHelper.getRows().length" flex layout="column" layout-align="center center" style="height: 100%">
         <span class="md-subhead" ng-bind="mdtEmptyTitle"></span>
     </div>
+    <!--
+        mdt-sort-handler
+        md-ink-ripple="{{rippleEffect}}"
+    -->
+
     <div id="visible-header" class="row-header" style="display: block" ng-show="mdtPaginationHelper.getRows().length && !mtHideHeader && tableDataStorageService.tableWidth">
-        <div ng-cloak layout="row"  flex>
-            <div
-                    ng-style="headerRowData.style"
-                    class="th"
-                    mdt-add-align-class="headerRowData.alignRule"
-                    mdt-sort-handler
-                    md-ink-ripple="{{rippleEffect}}"
-                    ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
+        <div ng-cloak layout="row" flex>
+            <div ng-if="!sortable"
+                 ng-style="headerRowData.style"
+                 class="th"
+                 mdt-add-align-class="headerRowData.alignRule"
+                 ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
+                <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
+            </div>
+
+            <div ng-if="sortable"
+                 ng-style="headerRowData.style"
+                 class="th"
+                 mdt-sort-handler
+                 md-ink-ripple="{{rippleEffect}}"
+                 mdt-add-align-class="headerRowData.alignRule"
+                 ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
                 <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
             </div>
             <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></div>
@@ -33,6 +46,7 @@
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
                               mdt-table-row
                               data-grid-id="gridId"
+                              data-selectable="selectable"
                               data-on-click="mdtPaginationHelper.onTouch(rowData)"
                               data-props="tableDataStorageService.header"
                               data-model="rowData">
@@ -53,6 +67,7 @@
                               mtd-right-click="mdtPaginationHelper.selectRow(rowData)"
                               mdt-table-row
                               data-grid-id="gridId"
+                              data-selectable="selectable"
                               data-on-click="mdtPaginationHelper.onTouch(rowData)"
                               data-props="tableDataStorageService.header"
                               data-model="rowData">

@@ -3,7 +3,7 @@
     <div style="display: inline-block;" ng-if="headerRowData.columnType == 'html'" ng-bind-html="trustHtml(headerRowData.columnContent())"></div>
 
     <div ng-if="headerRowData.columnType != 'html'" layout="row" ng-show="sortableColumns && headerRowData.sortable" style="display: inline-block;">
-        <md-tooltip ng-show="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
+        <md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
         <span ng-show="headerRowData.alignRule == 'right' && headerRowData.sortable">
             <span class="hoverSortIcons" ng-show="!isSorted()">
@@ -28,7 +28,7 @@
         </span>
     </div>
     <div ng-if="headerRowData.columnType != 'html'" ng-show="!sortableColumns">
-        <md-tooltip ng-show="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
+        <md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
         <span>
             {{headerRowData.columnName}}

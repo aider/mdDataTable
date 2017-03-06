@@ -7,30 +7,30 @@
 
         <span ng-show="headerRowData.alignRule == 'right' && headerRowData.sortable">
             <span class="hoverSortIcons" ng-show="!isSorted()">
-                <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
+                <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
 
             <span class="sortedColumn" ng-show="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
-                <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
+                <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
         </span>
-        <span>
+        <span ng-class="isSorted()?'sortedColumn':''">
             {{headerRowData.columnName}}
         </span>
         <span ng-show="headerRowData.alignRule == 'left' && headerRowData.sortable">
             <span class="hoverSortIcons" ng-show="!isSorted()">
-                <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
+                <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
 
             <span class="sortedColumn" ng-show="isSorted()" ng-class="direction == -1 ? 'ascending' : 'descending'">
-                <ng-md-icon icon="arrow_forward" size="16"></ng-md-icon>
+                <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
         </span>
     </div>
     <div ng-if="headerRowData.columnType != 'html'" ng-show="!sortableColumns">
         <md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
-        <span>
+        <span ng-class="isSorted()?'sortedColumn':''">
             {{headerRowData.columnName}}
         </span>
     </div>

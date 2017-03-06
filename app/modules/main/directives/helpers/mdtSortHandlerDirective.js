@@ -12,12 +12,19 @@
 
 
                 function sortHandler() {
-                    if(angular.isFunction($scope.headerRowData.onColumnClick)) {
-                        $scope.headerRowData.onColumnClick($scope.tableDataStorageService.storage);
+                    if (angular.isFunction($scope.headerRowData.onColumnClick)) {
+                        if ($scope.headerRowData.onColumnClick($scope.tableDataStorageService.storage)) {
+                            return;
+                        }
+
                     }
                     if ($scope.sortableColumns && $scope.headerRowData.sortable) {
                         $scope.$apply(function () {
-                            $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
+                            if (angular.isFunction($scope.headerRowData.sortByColumn)) {
+                                $scope.direction = $scope.headerRowData.sortByColumn();
+                            } else {
+                                $scope.direction = $scope.tableDataStorageService.sortByColumn(columnIndex, $scope.headerRowData.sortBy);
+                            }
                         });
                     }
                 }
@@ -25,7 +32,7 @@
                 element.on('click', sortHandler);
 
                 function isSorted() {
-                    return $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;
+                    return angular.isFunction($scope.headerRowData.isSorted) ? $scope.headerRowData.isSorted() : $scope.tableDataStorageService.sortByColumnLastIndex === columnIndex;
                 }
 
                 $scope.$on('$destroy', function () {

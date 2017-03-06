@@ -26,7 +26,7 @@
                  ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
                 <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
             </div>
-            <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth,'padding-right':'0'}"></div>
+            <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth}"></div>
         </div>
     </div>
     <div class="data-container" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && isSelectable">

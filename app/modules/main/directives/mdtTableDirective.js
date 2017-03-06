@@ -163,6 +163,8 @@
                                 }, 500);
                             }
                             if (data && angular.isArray(data)) {
+                                $scope.cacheId = Date.now();
+                                // $scope.$applyAsync();
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup, $scope.mdtMultiSelect);
 
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
@@ -187,6 +189,7 @@
                 $scope.sortable = $scope.mdtSortable !== 'false';
 
                 $scope.gridId = $scope.$id;
+                $scope.cacheId = Date.now();
                 injectContentIntoTemplate();
                 $scope.isSelectable = angular.isDefined(attrs.mdtSelectFn);
 

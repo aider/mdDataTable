@@ -17,6 +17,7 @@
                 scope.trustAsHtml = function (string) {
                     return $sce.trustAsHtml(string);
                 };
+
                 var initColumns = function () {
                     var templateCacheKey = 'row_template' + scope.gridId;
                     var htmlTemplate = superCache.get(templateCacheKey);
@@ -52,7 +53,7 @@
                                 // (prop.onClick ? ' ng-click="props[\'' + index + '\'].onClick(model)"' : '')
                                 // rowTemplate.push('<div class="td ' + prop.class +'" '+  + style = "' + style + '" > ');
                                 rowTemplate.push('<div class="td ' + prop.class + '" ' + (prop.onClick ? ' ng-click="props[\'' + index + '\'].onClick(model)"' : '') + ' style="' + style + '" > ');
-                                rowTemplate.push('<div class="first-column-section" '+(prop.type==='html' ? 'style="display: inline-block;"':'')+'>');
+                                rowTemplate.push('<div class="first-column-section" ' + (prop.type === 'html' ? 'style="display: inline-block;"' : '') + '>');
 
                                 if (prop.type === 'html') {
                                     rowTemplate.push('<div ng-bind-html="trustAsHtml(props[\'' + index + '\'].content(model))"></div>');
@@ -106,7 +107,9 @@
                 //         unbind();
                 //     }
                 // });
+
                 initColumns();
+                scope.$watch('gridId', initColumns);
             }
         };
     }

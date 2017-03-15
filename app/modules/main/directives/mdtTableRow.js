@@ -109,7 +109,12 @@
                 // });
 
                 initColumns();
-                scope.$watch('gridId', initColumns);
+                var unwatch = scope.$watch('gridId', initColumns);
+
+                element.on('$destroy', function () {
+                    unwatch();
+                });
+
             }
         };
     }

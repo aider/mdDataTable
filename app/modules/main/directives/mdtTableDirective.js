@@ -356,23 +356,6 @@
     }
 
 
-    // function mdtContextMenu($parse) {
-    //     return {
-    //         restrict: 'A',
-    //         scope: true,
-    //         link: function (scope, element, attrs) {
-    //             var menuHandler = $parse(attrs.mdtContextMenu);
-    //             element.on('contextmenu', function (event) {
-    //                 scope.$apply(function() {
-    //                     menuHandler(scope, {$event: (event)});
-    //                 });
-    //                 return false;
-    //
-    //
-    //             });
-    //         }
-    //     };
-    // }
     function MtdRightClick($parse, $rootScope) {
         return {
             compile: function ($element, attr) {

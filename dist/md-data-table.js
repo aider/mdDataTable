@@ -463,7 +463,6 @@
 
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
-                        debugger;
                         $scope.scrollWidth = getScrollbarWidth() || 1;
                         var baseContainer = $('#grid_' + $scope.gridId);
                         if (!baseContainer.length) {
@@ -560,23 +559,6 @@
     }
 
 
-    // function mdtContextMenu($parse) {
-    //     return {
-    //         restrict: 'A',
-    //         scope: true,
-    //         link: function (scope, element, attrs) {
-    //             var menuHandler = $parse(attrs.mdtContextMenu);
-    //             element.on('contextmenu', function (event) {
-    //                 scope.$apply(function() {
-    //                     menuHandler(scope, {$event: (event)});
-    //                 });
-    //                 return false;
-    //
-    //
-    //             });
-    //         }
-    //     };
-    // }
     function MtdRightClick($parse, $rootScope) {
         return {
             compile: function ($element, attr) {
@@ -652,7 +634,6 @@
                     var templateCacheKey = 'row_template' + scope.gridId;
                     var htmlTemplate = superCache.get(templateCacheKey);
                     if (!htmlTemplate) {
-                        console.log('new templateCacheKey:' + templateCacheKey);
                         var rowTemplate = [];
 
                         var sortedProps = scope.props.filter(function (item) {
@@ -740,7 +721,12 @@
                 // });
 
                 initColumns();
-                scope.$watch('gridId', initColumns);
+                var unwatch = scope.$watch('gridId', initColumns);
+
+                element.on('$destroy', function () {
+                    unwatch();
+                });
+
             }
         };
     }

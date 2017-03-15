@@ -157,11 +157,6 @@
                     $scope.tableDataCnt = 0;
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         var unbindCollection = $scope.$watchCollection('mdtModel.data', function (data) {
-                            if (data) {
-                                // $timeout(function () {
-                                    // $scope.tableIsReady = true;
-                                // }, 500);
-                            }
                             if (data && angular.isArray(data)) {
                                 $scope.cacheId = Date.now();
                                 // $scope.$applyAsync();
@@ -261,13 +256,12 @@
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 1;
                         var baseContainer = element;
-                        debugger;
                         if (!baseContainer.length) {
                             // unbindCollection();
                             return;
                         }
                         var dataContainer = $('.'+($scope.isSelectable ? 'dc-selectable': 'dc-nonselectable'), baseContainer);
-                        debugger;
+
                         if (dataContainer.length === 0) {
                             $scope.watiForHeight(rowsLength, unbindCollection);
                             return;

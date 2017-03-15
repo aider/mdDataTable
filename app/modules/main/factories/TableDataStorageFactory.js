@@ -122,7 +122,7 @@
                 });
             });
             _header.forEach(function (header) {
-                _maxWidth[header.id] = 3 * _maxWidth[header.id];
+                _maxWidth[header.id] = 5 * _maxWidth[header.id];
 
             });
             var _tableWidth = 0;

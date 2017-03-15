@@ -29,7 +29,7 @@
             <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth}"></div>
         </div>
     </div>
-    <div class="data-container" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && isSelectable">
+    <div class="data-container" ng-class="{'dc-selectable':isSelectable}" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && isSelectable">
         <md-list flex mtd-context-menu
                  ng-if="isSelectable"
                  style="position: relative"
@@ -55,7 +55,7 @@
             </md-virtual-repeat-container>
         </md-list>
     </div>
-    <div class="data-container" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && !isSelectable">
+    <div class="data-container" ng-class="{'dc-nonselectable':!isSelectable}" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && !isSelectable">
         <md-list flex style="position: relative" ng-if="!isSelectable">
 
             <md-virtual-repeat-container ng-style="mtHideHeader && {'top':'10px'} || {'top':'0px'}" style="bottom:0;left:0;right:0;width:100%;position: absolute">

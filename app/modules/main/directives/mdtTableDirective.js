@@ -158,15 +158,14 @@
                     var unbindWatchMdtModel = $scope.$watch('mdtModel', function (data) {
                         var unbindCollection = $scope.$watchCollection('mdtModel.data', function (data) {
                             if (data) {
-                                $timeout(function () {
-                                    $scope.tableIsReady = true;
-                                }, 500);
+                                // $timeout(function () {
+                                    // $scope.tableIsReady = true;
+                                // }, 500);
                             }
                             if (data && angular.isArray(data)) {
                                 $scope.cacheId = Date.now();
                                 // $scope.$applyAsync();
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup, $scope.mdtMultiSelect);
-
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
                                 if (rowsLength) {
                                     $scope.watiForHeight(rowsLength, unbindCollection);
@@ -261,22 +260,29 @@
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 1;
-                        var baseContainer = $('#grid_' + $scope.gridId);
+                        var baseContainer = element;
+                        debugger;
                         if (!baseContainer.length) {
-                            unbindCollection();
+                            // unbindCollection();
                             return;
                         }
-                        var $dc = $('.data-container', baseContainer);
-                        if (!$dc.is(':visible')) {
+                        var dataContainer = $('.'+($scope.isSelectable ? 'dc-selectable': 'dc-nonselectable'), baseContainer);
+                        debugger;
+                        if (dataContainer.length === 0) {
                             $scope.watiForHeight(rowsLength, unbindCollection);
-                            return
+                            return;
                         }
-                        $scope.isScrollVisible = rowsLength * 48 > $dc.height();
+                        var mdListItem = $('md-list-item', dataContainer);
+                        if (mdListItem.length === 0 || !mdListItem.is(':visible')) {
+                            $scope.watiForHeight(rowsLength, unbindCollection);
+                            return;
+                        }
+                        $scope.tableIsReady = true;
+                        $scope.isScrollVisible = rowsLength * mdListItem.height() > dataContainer.height();
                     });
 
                 };
 
-                // $scope.watiForHeight();
 
                 if (!_.isEmpty($scope.mdtRow)) {
                     //local search/filter

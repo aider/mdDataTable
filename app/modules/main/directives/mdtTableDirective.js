@@ -252,6 +252,7 @@
                     return -$('#hiddenBody', element).height();
                 };
 
+                var borderBottom = 1;
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 1;
@@ -260,7 +261,7 @@
                             // unbindCollection();
                             return;
                         }
-                        var dataContainer = $('.'+($scope.isSelectable ? 'dc-selectable': 'dc-nonselectable'), baseContainer);
+                        var dataContainer = $('.' + ($scope.isSelectable ? 'dc-selectable' : 'dc-nonselectable'), baseContainer);
 
                         if (dataContainer.length === 0) {
                             $scope.watiForHeight(rowsLength, unbindCollection);
@@ -272,7 +273,7 @@
                             return;
                         }
                         $scope.tableIsReady = true;
-                        $scope.isScrollVisible = rowsLength * mdListItem.height() > dataContainer.height();
+                        $scope.isScrollVisible = rowsLength * (mdListItem.height() + borderBottom) > dataContainer.height();
                     });
 
                 };

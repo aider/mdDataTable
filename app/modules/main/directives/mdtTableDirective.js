@@ -255,7 +255,7 @@
                 var borderBottom = 1;
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
                     $timeout(function () {
-                        $scope.scrollWidth = getScrollbarWidth() || 1;
+                        $scope.scrollWidth = getScrollbarWidth() || 0;
                         var baseContainer = element;
                         if (!baseContainer.length) {
                             // unbindCollection();

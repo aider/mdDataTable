@@ -20,13 +20,14 @@
             <div ng-if="sortable"
                  ng-style="headerRowData.style"
                  class="th"
+                 ng-class="{'th-last':$last}"
                  mdt-sort-handler
                  md-ink-ripple="{{rippleEffect}}"
                  mdt-add-align-class="headerRowData.alignRule"
                  ng-repeat="headerRowData in tableDataStorageService.header | filter: {enabled : true} track by $index" ng-class="headerRowData.class">
                 <mdt-generated-header-cell-content></mdt-generated-header-cell-content>
             </div>
-            <div class="th flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible" ng-style="{'width':scrollWidth}"></div>
+            <div class="th-scroll flex-order-{{tableDataStorageService.header.length}}" ng-if="isScrollVisible && scrollWidth" ng-style="{'min-width':scrollWidth}"></div>
         </div>
     </div>
     <div class="data-container" ng-class="{'dc-selectable':isSelectable}" flex layout="column" ng-show="tableDataStorageService.storage.length && tableDataStorageService.tableWidth && isSelectable">

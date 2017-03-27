@@ -26,7 +26,7 @@
             this.storage = [];
             this.maxRow = {data: {}};
             this.maxWidth = {};
-            this.multiSelect = mdtMultiSelect === 'true' ;
+            this.multiSelect = mdtMultiSelect === 'true';
 
             this.selectCbFn = selectCbFn;
             this.dblClickCbFn = dblClickCbFn;
@@ -122,9 +122,13 @@
                 });
             });
             _header.forEach(function (header) {
-                _maxWidth[header.id] = 5 * _maxWidth[header.id];
-
+                if (!header.widthType || header.widthType !== 'static') {
+                    _maxWidth[header.id] = 5 * _maxWidth[header.id];
+                } else {
+                    _maxWidth[header.id] = _maxWidth[header.id];
+                }
             });
+
             var _tableWidth = 0;
             _header.forEach(function (header, index) {
                 _avgWidth[header.id] = _avgWidth[header.id] / (_avgNonEmpty[header.id] > 0 ? _avgNonEmpty[header.id] : 1);
@@ -134,7 +138,7 @@
 
                 header.style = header.style || {};
                 if (!header.style['width'] || (header.type !== 'html' && header.style['width'] < _maxWidth[header.id])) {
-                // if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
+                    // if (!header.style['width'] || header.style['width'] < _maxWidth[header.id]) {
                     header.style['width'] = Math.round(_maxWidth[header.id]);
                 }
                 var minWidthStyle = header.style['min-width'];

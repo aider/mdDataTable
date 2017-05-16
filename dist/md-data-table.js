@@ -614,7 +614,8 @@
         })
         .filter('dateFilter', function ($filter) {
             return function (input, defaultValue) {
-                if (angular.isUndefined(input) || input === null || input === '') {
+
+                if (angular.isUndefined(input) || input === null || input === ''  || input === '0001-01-01T00:00:00Z' ) {
                     return defaultValue;
                 }
                 var inputDate = new Date(input);

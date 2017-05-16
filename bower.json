@@ -1,14 +1,11 @@
 {
-  "name": "mdDataTable",
+  "name": "md-data-table",
   "version": "1.1.2",
-  "homepage": "https://github.com/iamisti/mdDataTable",
-  "author": "Istvan Fodor <programtervezo@gmail.com>",
   "main": [
     "dist/md-data-table.js",
     "dist/md-data-table-templates.js",
     "dist/md-data-table-style.css"
   ],
-  "description": "Angular material table. Complete implementation of google material design based on angular material components.",
   "keywords": [
     "table",
     "angular",
@@ -16,7 +13,6 @@
     "angular material",
     "angular table"
   ],
-  "license": "MIT",
   "ignore": [
     "test",
     "demo",

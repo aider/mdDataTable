@@ -162,9 +162,9 @@
                                 // $scope.$applyAsync();
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup, $scope.mdtMultiSelect);
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
-                                if (rowsLength) {
-                                    $scope.watiForHeight(rowsLength, unbindCollection);
-                                }
+                                // if (rowsLength) {
+                                $scope.watiForHeight(rowsLength, unbindCollection);
+                                // }
                             }
                         });
 
@@ -254,11 +254,16 @@
 
                 var borderBottom = 1;
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
+                    if(rowsLength === 0) {
+                        $scope.tableIsReady = true;
+                        return;
+                    }
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 0;
                         var baseContainer = element;
                         if (!baseContainer.length) {
                             // unbindCollection();
+                            // $scope.watiForHeight(rowsLength, unbindCollection);
                             return;
                         }
                         var dataContainer = $('.' + ($scope.isSelectable ? 'dc-selectable' : 'dc-nonselectable'), baseContainer);

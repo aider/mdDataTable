@@ -365,9 +365,10 @@
                                 // $scope.$applyAsync();
                                 $scope.tableDataStorageService.initModel($scope.mdtModel, $scope.mdtSelectFn, $scope.mdtTouchFn, $scope.mdtDblclickFn, $scope.mdtContextMenuFn, $scope.onPopup, $scope.mdtMultiSelect);
                                 var rowsLength = $scope.mdtPaginationHelper.getRows().length;
-                                if (rowsLength) {
-                                    $scope.watiForHeight(rowsLength, unbindCollection);
-                                }
+                                // if (rowsLength) {
+                                debugger;
+                                $scope.watiForHeight(rowsLength, unbindCollection);
+                                // }
                             }
                         });
 
@@ -457,11 +458,16 @@
 
                 var borderBottom = 1;
                 $scope.watiForHeight = function (rowsLength, unbindCollection) {
+                    if(rowsLength === 0) {
+                        $scope.tableIsReady = true;
+                        return;
+                    }
                     $timeout(function () {
                         $scope.scrollWidth = getScrollbarWidth() || 0;
                         var baseContainer = element;
                         if (!baseContainer.length) {
                             // unbindCollection();
+                            // $scope.watiForHeight(rowsLength, unbindCollection);
                             return;
                         }
                         var dataContainer = $('.' + ($scope.isSelectable ? 'dc-selectable' : 'dc-nonselectable'), baseContainer);
@@ -1311,6 +1317,19 @@
 (function(){
     'use strict';
 
+    var ColumnOptionProvider = {
+        ALIGN_RULE : {
+            ALIGN_LEFT: 'left',
+            ALIGN_RIGHT: 'right'
+        }
+    };
+
+    angular.module('material.components.table')
+        .value('ColumnOptionProvider', ColumnOptionProvider);
+})();
+(function(){
+    'use strict';
+
     function ColumnAlignmentHelper(ColumnOptionProvider){
         var service = this;
         service.getColumnAlignClass = getColumnAlignClass;
@@ -1328,19 +1347,6 @@
         .module('material.components.table')
         .service('ColumnAlignmentHelper', ['ColumnOptionProvider', ColumnAlignmentHelper]);
 }());
-(function(){
-    'use strict';
-
-    var ColumnOptionProvider = {
-        ALIGN_RULE : {
-            ALIGN_LEFT: 'left',
-            ALIGN_RIGHT: 'right'
-        }
-    };
-
-    angular.module('material.components.table')
-        .value('ColumnOptionProvider', ColumnOptionProvider);
-})();
 (function () {
     'use strict';
 

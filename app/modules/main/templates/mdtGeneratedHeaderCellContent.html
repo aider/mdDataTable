@@ -2,11 +2,11 @@
     <!-- style="width: 100%;text-align: center;"-->
     <div style="display: inline-block;" ng-if="headerRowData.columnType == 'html'" ng-bind-html="trustHtml(headerRowData.columnContent())"></div>
 
-    <div ng-if="headerRowData.columnType != 'html'" layout="row" ng-show="sortableColumns && headerRowData.sortable" style="display: inline-block;">
+    <div ng-if="headerRowData.columnType != 'html'" layout="row" style="display: inline-block;">
         <md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
 
-        <span ng-show="headerRowData.alignRule == 'right' && headerRowData.sortable">
-            <span class="hoverSortIcons" ng-show="!isSorted()">
+        <span ng-show="headerRowData.alignRule == 'right'">
+            <span class="hoverSortIcons" ng-show="!isSorted() && headerRowData.sortable">
                 <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
 
@@ -14,11 +14,11 @@
                 <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
         </span>
-        <span ng-class="isSorted()?'sortedColumn':''">
+        <span class="noselect" ng-class="isSorted()?'sortedColumn':''">
             {{headerRowData.columnName}}
         </span>
-        <span ng-show="headerRowData.alignRule == 'left' && headerRowData.sortable">
-            <span class="hoverSortIcons" ng-show="!isSorted()">
+        <span ng-show="headerRowData.alignRule == 'left'">
+            <span class="hoverSortIcons" ng-show="!isSorted() && headerRowData.sortable">
                 <ng-md-icon icon="{{headerRowData.sortIcon ? headerRowData.sortIcon : 'arrow_forward'}}" size="16"></ng-md-icon>
             </span>
 
@@ -27,11 +27,11 @@
             </span>
         </span>
     </div>
-    <div ng-if="headerRowData.columnType != 'html'" ng-show="!sortableColumns">
-        <md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>
+    <!--<div ng-if="headerRowData.columnType != 'html'" ng-show="!sortableColumns" layout="row" style="display: inline-block;">-->
+        <!--<md-tooltip ng-if="headerRowData.columnDefinition">{{headerRowData.columnDefinition}}</md-tooltip>-->
 
-        <span ng-class="isSorted()?'sortedColumn':''">
-            {{headerRowData.columnName}}
-        </span>
-    </div>
+        <!--<span ng-class="isSorted()?'sortedColumn':''">-->
+            <!--{{headerRowData.columnName}}-->
+        <!--</span>-->
+    <!--</div>-->
 </div>

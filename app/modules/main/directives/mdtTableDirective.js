@@ -101,7 +101,7 @@
                 //@deprecated
                 selectableRows: '=',
                 //@deprecated
-                sortableColumns: '=',
+                sortableColumns: '@',
 
                 alternateHeaders: '=',
                 mdtSelectable: '@',
@@ -181,6 +181,7 @@
             }],
             link: function ($scope, element, attrs, ctrl, transclude) {
                 $scope.sortable = $scope.mdtSortable !== 'false';
+                $scope.sortableColumns = $scope.sortableColumns !== 'false';
 
                 $scope.gridId = $scope.$id;
                 $scope.cacheId = Date.now();
